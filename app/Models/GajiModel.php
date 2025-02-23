@@ -5,12 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class UangKeluarModel extends Model
+class GajiModel extends Model
 {
     use HasFactory;
-    
+
     // Nama tabel yang digunakan
-    protected $table = 'laporan_transaksis';
+    protected $table = 'laporan_transaksis'; // Ganti dengan nama tabel yang sesuai
 
     // Primary key
     protected $primaryKey = 'id';

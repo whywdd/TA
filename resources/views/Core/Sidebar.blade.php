@@ -127,6 +127,12 @@
                 </a>
             </li>
             <li class="mb-4">
+                <a href="{{ route('input-gaji.index') }}" class="nav-link flex items-center p-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-money-bill-wave-alt mr-3"></i>
+                    <span>Input Gaji</span>
+                </a>
+            </li>
+            <li class="mb-4">
                 <a href="{{ route('gaji.index') }}" class="nav-link flex items-center p-2 rounded-lg hover:bg-blue-700 transition-colors">
                     <i class="fas fa-user mr-3"></i>
                     <span>Gaji Karyawan</span>

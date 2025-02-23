@@ -18,7 +18,7 @@
                 </label>
                 <input 
                     type="date" 
-                    name="tanggal" 
+                    name="Tanggal" 
                     class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                 >
@@ -39,27 +39,14 @@
                     <optgroup label="Akun Aset → Kategori yang mencatat kepemilikan perusahaan">
                         <option value="kas">Kas</option>
                         <option value="piutang">Piutang usaha</option>
-                        <option value="persediaan">Persediaan</option>
                     </optgroup>
                     
                     <optgroup label="Akun Kewajiban → Kategori untuk utang atau kewajiban perusahaan">
                         <option value="utang_usaha">Utang usaha</option>
                         <option value="utang_bank">Utang bank</option>
-                        <option value="utang_gaji">Utang gaji</option>
-                    </optgroup>
-                    
-                    <optgroup label="Akun Ekuitas → Kategori untuk modal pemilik">
-                        <option value="modal_pemilik">Modal pemilik</option>
-                        <option value="laba_ditahan">Laba ditahan</option>
-                    </optgroup>
-                    
-                    <optgroup label="Akun Pendapatan → Kategori untuk pemasukan perusahaan">
-                        <option value="pendapatan_penjualan">Pendapatan penjualan</option>
-                        <option value="pendapatan_jasa">Pendapatan jasa</option>
                     </optgroup>
                     
                     <optgroup label="Akun Beban → Kategori untuk biaya operasional">
-                        <option value="beban_gaji">Beban gaji</option>
                         <option value="beban_listrik">Beban listrik</option>
                         <option value="beban_sewa">Beban sewa</option>
                     </optgroup>
@@ -88,12 +75,12 @@
                 <div class="relative">
                     <span class="absolute left-3 top-2 text-gray-600">Rp</span>
                     <input 
-                        type="number" 
-                        name="total_uang"
+                        type="text" 
+                        name="uang_keluar"
                         class="w-full border rounded-lg pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="0"
-                        min="0"
                         required
+                        oninput="formatNumber(this)"
                     >
                 </div>
                 <p class="text-xs text-gray-500 mt-1">Masukkan angka tanpa tanda titik atau koma</p>
@@ -119,26 +106,44 @@
     </div>
 </div>
 
+<!-- SweetAlert2 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-document.getElementById('uangKeluarForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    // Logika untuk handle submit form bisa ditambahkan di sini
-    alert('Form submitted!');
-});
+function formatNumber(input) {
+    // Hapus semua karakter non-digit
+    let value = input.value.replace(/\D/g, '');
+    
+    // Format angka dengan pemisah ribuan
+    if (value !== '') {
+        value = new Intl.NumberFormat('id-ID').format(value);
+    }
+    
+    input.value = value;
+}
 
 // Set default date to today
 document.querySelector('input[type="date"]').valueAsDate = new Date();
 
-// Format number input dengan pemisah ribuan
-const uangInput = document.querySelector('input[type="number"]');
+// Menampilkan notifikasi jika ada pesan sukses atau error
+@if(session('success'))
+    Swal.fire({
+        icon: 'success',
+        title: 'Berhasil!',
+        text: '{{ session('success') }}',
+        confirmButtonText: 'OK'
+    });
+@endif
 
-uangInput.addEventListener('input', function(e) {
-    let value = this.value.replace(/\D/g, '');
-    if (value !== '') {
-        value = parseInt(value).toLocaleString('id-ID');
-    }
-    this.value = value;
-});
+@if(session('error'))
+    Swal.fire({
+        icon: 'error',
+        title: 'Gagal!',
+        text: '{{ session('error') }}',
+        confirmButtonText: 'OK'
+    });
+@endif
 </script>
 
 <style>

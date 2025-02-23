@@ -13,44 +13,45 @@
         <div class="flex flex-wrap gap-4 px-6 py-4 border-b border-gray-200">
             <div class="flex items-center">
                 <label class="mr-2 text-sm font-medium text-gray-600">Keterangan:</label>
-                <input type="text" id="filterKeterangan" placeholder="Masukkan keterangan" class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="filterKeterangan" placeholder="Masukkan keterangan" class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" onkeyup="filterTable()">
                 <button class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
                     <i class="fas fa-search mr-2"></i>Filter
                 </button>
             </div>
         </div>
     
-    <div class="bg-white rounded-lg shadow-lg p-6">
-        <!-- Tabel Keterangan Gaji Karyawan -->
-        <table class="min-w-full bg-white border border-gray-300">
-            <thead>
-                <tr>
-                    <th class="py-2 px-4 border-b text-left">No</th>
-                    <th class="py-2 px-4 border-b text-left">Keterangan</th>
-                    <th class="py-2 px-4 border-b text-left">Nominal</th>
-                    <th class="py-2 px-4 border-b text-left">Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Contoh data, ganti dengan data dinamis dari database -->
-                <tr>
-                    <td class="py-2 px-4 border-b">1</td>
-                    <td class="py-2 px-4 border-b">Gaji Jack</td>
-                    <td class="py-2 px-4 border-b">Rp 5.000.000</td>
-                    <td class="py-3 px-4 text-center">
-                        <div class="flex justify-center space-x-2">
-                            <button class="text-blue-600 hover:text-blue-800" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="text-red-600 hover:text-red-800" title="Hapus">
-                                <i class="fas fa-trash"></i>
-                             </button>
-                        </div>
-                     </td>
-                </tr>
-                <!-- Tambahkan lebih banyak baris sesuai kebutuhan -->
-            </tbody>
-        </table>
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <!-- Tabel Keterangan Gaji Karyawan -->
+            <table id="gajiTable" class="min-w-full bg-white border border-gray-300">
+                <thead>
+                    <tr>
+                        <th class="py-2 px-4 border-b text-left">No</th>
+                        <th class="py-2 px-4 border-b text-left">Keterangan</th>
+                        <th class="py-2 px-4 border-b text-left">Nominal</th>
+                        <th class="py-2 px-4 border-b text-left">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($gajiKaryawan as $index => $gaji)
+                    <tr>
+                        <td class="py-2 px-4 border-b">{{ $index + 1 }}</td>
+                        <td class="py-2 px-4 border-b">{{ $gaji->keterangan }}</td>
+                        <td class="py-2 px-4 border-b">Rp {{ number_format($gaji->gaji, 0, ',', '.') }}</td>
+                        <td class="py-3 px-4 text-center">
+                            <div class="flex justify-center space-x-2">
+                                <button class="text-blue-600 hover:text-blue-800" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="text-red-600 hover:text-red-800" title="Hapus">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

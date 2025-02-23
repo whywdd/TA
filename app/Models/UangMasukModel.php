@@ -10,7 +10,7 @@ class UangMasukModel extends Model
     use HasFactory;
 
     // Nama tabel yang digunakan
-    protected $table = 'uang_masuk';
+    protected $table = 'laporan_transaksis';
 
     // Primary key
     protected $primaryKey = 'id';
@@ -23,10 +23,13 @@ class UangMasukModel extends Model
 
     // Kolom yang dapat diisi
     protected $fillable = [
-        'tanggal',
+        'Tanggal',
+        'kode',
         'kategori',
         'keterangan',
-        'total_uang',
+        'uang_masuk',
+        'uang_keluar',
+        'gaji'
     ];
 
     // Timestamps
@@ -35,4 +38,11 @@ class UangMasukModel extends Model
     // Jika Anda ingin mengubah nama kolom timestamps
     const CREATED_AT = 'created_at';
     const UPDATED_AT = 'updated_at';
+
+    protected $casts = [
+        'Tanggal' => 'date',
+        'uang_masuk' => 'decimal:2',
+        'uang_keluar' => 'decimal:2',
+        'gaji' => 'decimal:2',
+    ];
 }

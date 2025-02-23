@@ -13,9 +13,16 @@ return new class extends Migration
     {
         Schema::create('laporan_transaksis', function (Blueprint $table) {
             $table->id();
+            $table->Date('Tanggal');
+            $table->string('kode');
+            $table->string('kategori');
+            $table->text('keterangan');
+            $table->text('nama_karyawan');
+            $table->decimal('uang_masuk', 15, 2);
+            $table->decimal('uang_keluar', 15, 2);
+            $table->decimal('gaji', 15, 2);
             $table->timestamps();
-            laporan_transaksi
-        });
+       });
     }
 
     /**

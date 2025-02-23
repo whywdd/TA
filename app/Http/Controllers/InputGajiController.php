@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UangKeluarModel; // Import model
+use App\Models\InputGajiModel; // Import model
 use Illuminate\Http\Request;
 
-class UangKeluarController extends Controller
+class InputGajiController extends Controller
 {
     public function index()
     {
-        return view('UangKeluar');
+        return view('InputGaji');
     }
 
     public function store(Request $request)
@@ -19,25 +19,26 @@ class UangKeluarController extends Controller
             $validated = $request->validate([
                 'Tanggal' => 'required|date',
                 'kategori' => 'required|string',
-                'keterangan' => 'required|string',
-                'uang_keluar' => 'required|string',
+                'nama_karyawan' => 'required|string',
+                'gaji' => 'required|string',
             ]);
 
-            // Bersihkan format angka dari input uang_keluar
-            $uang_keluar = str_replace(['.', ','], '', $request->uang_keluar);
+            // Bersihkan format angka dari input gaji
+            $gaji = str_replace(['.', ','], '', $request->gaji);
 
             // Tentukan kode berdasarkan kategori
             $kode = $this->generateKode($validated['kategori']);
 
             // Simpan data
-            UangKeluarModel::create([
+            InputGajiModel::create([
                 'Tanggal' => $validated['Tanggal'],
                 'kode' => $kode,
                 'kategori' => $validated['kategori'],
-                'keterangan' => $validated['keterangan'],
+                'nama_karyawan' => $validated['nama_karyawan'],
+                'keterangan' => null,
                 'uang_masuk' => 0,
-                'uang_keluar' => $uang_keluar,
-                'gaji' => 0,
+                'uang_keluar' => 0,
+                'gaji' => $gaji,
             ]);
 
             return redirect()->back()->with('success', 'Data berhasil disimpan!');
@@ -51,27 +52,18 @@ class UangKeluarController extends Controller
         // Tentukan kode dasar berdasarkan kategori
         $kodeDasar = 0;
         switch ($kategori) {
-            case 'kas':
-                $kodeDasar = 1;
-                break;
-            case 'utang_usaha':
+            case 'utang_gaji':
                 $kodeDasar = 2;
                 break;
-            case 'utang_bank':
-                $kodeDasar = 2;
-                break;    
-            case 'beban_listrik':
+            case 'beban_gaji':
                 $kodeDasar = 5;
-                break; 
-            case 'beban_sewa':
-                $kodeDasar = 5;
-                break; 
+                break;
             default:
                 $kodeDasar = 0; // Kode default jika kategori tidak dikenali
         }
 
         // Ambil jumlah transaksi dengan kode dasar yang sama
-        $lastTransaction = UangKeluarModel::where('kode', 'like', $kodeDasar . '%')->orderBy('id', 'desc')->first();
+        $lastTransaction = InputGajiModel::where('kode', 'like', $kodeDasar . '%')->orderBy('id', 'desc')->first();
         $nextNumber = $lastTransaction ? intval(substr($lastTransaction->kode, 1)) + 1 : 1;
 
         // Gabungkan kode dasar dengan nomor urut

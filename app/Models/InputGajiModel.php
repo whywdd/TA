@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class UangKeluarModel extends Model
+class InputGajiModel extends Model
 {
     use HasFactory;
     
@@ -26,7 +26,7 @@ class UangKeluarModel extends Model
         'Tanggal',
         'kode',
         'kategori',
-        'keterangan',
+        'nama_karyawan',
         'uang_masuk',
         'uang_keluar',
         'gaji'

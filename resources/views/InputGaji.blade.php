@@ -4,12 +4,12 @@
 <div class="p-6 animate-fade-in">
     <!-- Header -->
     <div class="mb-4 bg-blue-600 text-white p-4 rounded-lg shadow-md">
-        <h1 class="text-2xl font-bold">Input Uang Masuk</h1>
-        <p class="text-sm mt-1">Formulir untuk menambahkan data uang Masuk</p>
+        <h1 class="text-2xl font-bold">Input Gaji Karyawan</h1>
+        <p class="text-sm mt-1">Formulir untuk menambahkan data Gaji Karyawan</p>
     </div>
     
     <div class="bg-white rounded-lg shadow-lg p-6">
-        <form id="uangMasukForm" action="{{ route('uangmasuk.store') }}" method="POST" class="space-y-4">
+        <form id="GajiForm" action="{{ route('input-gaji.store') }}" method="POST" class="space-y-4">
             @csrf <!-- Token CSRF untuk keamanan -->
             <!-- Tanggal -->
             <div class="form-group">
@@ -18,7 +18,7 @@
                 </label>
                 <input 
                     type="date" 
-                    name="Tanggal"
+                    name="Tanggal" 
                     class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                 >
@@ -33,49 +33,41 @@
                     name="kategori"
                     class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
                     required
-                    onchange="updateTotalUang(this.value)"
                 >
                     <option value="" disabled selected>Pilih Kategori Akun</option>
-                    
-                    <optgroup label="Akun Aset → Kategori yang mencatat kepemilikan perusahaan">
-                        <option value="kas" data-kode="KAS">Kas</option>
+                    <optgroup label="Akun Kewajiban → Kategori untuk utang atau kewajiban perusahaan">
+                        <option value="utang_gaji">Utang gaji</option>
                     </optgroup>
-                    
-                    <optgroup label="Akun Ekuitas → Kategori untuk modal pemilik">
-                        <option value="modal_pemilik" data-kode="MP">Modal pemilik</option>
-                    </optgroup>
-                    
-                    <optgroup label="Akun Pendapatan → Kategori untuk pemasukan perusahaan">
-                        <option value="pendapatan_penjualan" data-kode="PP">Pendapatan penjualan</option>
-                        <option value="pendapatan_jasa" data-kode="PJ">Pendapatan jasa</option>
+                    <optgroup label="Akun Beban → Kategori untuk biaya operasional">
+                        <option value="beban_gaji">Beban gaji</option>
                     </optgroup>
                 </select>
             </div>
 
-            <!-- Keterangan -->
+            <!-- Nama Karyawan -->
             <div class="form-group">
                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Keterangan <span class="text-red-600">*</span>
+                    Nama Karyawan <span class="text-red-600">*</span>
                 </label>
-                <textarea 
-                    name="keterangan"
+                <input 
+                    type="text" 
+                    name="nama_karyawan"
                     class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                    rows="3"
-                    placeholder="Masukkan keterangan uang masuk"
+                    placeholder="Masukkan nama karyawan"
                     required
-                ></textarea>
+                >
             </div>
 
-            <!-- Total Uang -->
+            <!-- Total Gaji -->
             <div class="form-group">
                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Total Uang <span class="text-red-600">*</span>
+                    Total Gaji <span class="text-red-600">*</span>
                 </label>
                 <div class="relative">
                     <span class="absolute left-3 top-2 text-gray-600">Rp</span>
                     <input 
-                        type="text"
-                        name="uang_masuk"
+                        type="text" 
+                        name="gaji"
                         class="w-full border rounded-lg pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="0"
                         required
@@ -84,9 +76,6 @@
                 </div>
                 <p class="text-xs text-gray-500 mt-1">Masukkan angka tanpa tanda titik atau koma</p>
             </div>
-
-            <!-- Input Tersembunyi untuk Kode -->
-            <input type="hidden" name="kode" id="kodeInput" value="">
 
             <!-- Tombol Submit -->
             <div class="flex justify-end space-x-3 pt-4">
@@ -125,13 +114,6 @@ function formatNumber(input) {
     input.value = value;
 }
 
-// Handle form submission
-document.getElementById('uangMasukForm').addEventListener('submit', function(e) {
-    // Jangan prevent default agar form bisa disubmit
-    const uangMasukInput = document.querySelector('input[name="uang_masuk"]');
-    // Biarkan nilai dengan format untuk diproses di controller
-});
-
 // Set default date to today
 document.querySelector('input[type="date"]').valueAsDate = new Date();
 
@@ -153,15 +135,6 @@ document.querySelector('input[type="date"]').valueAsDate = new Date();
         confirmButtonText: 'OK'
     });
 @endif
-
-function updateTotalUang(kategori) {
-    const kodeInput = document.getElementById('kodeInput');
-    const selectedOption = document.querySelector(`select[name="kategori"] option:checked`);
-    
-    if (selectedOption) {
-        kodeInput.value = selectedOption.getAttribute('data-kode'); // Ini tidak lagi digunakan, karena kode dihasilkan di server
-    }
-}
 </script>
 
 <style>

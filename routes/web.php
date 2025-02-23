@@ -6,6 +6,7 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\SidebarController;
 use App\Http\Controllers\UangMasukController;
 use App\Http\Controllers\UangKeluarController;
+use App\Http\Controllers\InputGajiController;
 use App\Http\Controllers\GajiController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LaporanController;
@@ -25,11 +26,13 @@ Route::get('/', [LoginController::class, 'index'])->name('login');
 Route::get('/dashboard', [SidebarController::class, 'index'])->name('dashboard');
 
 
-//untuk Uang Masuk dan keluar
+//untuk Uang Masuk dan keluar 
 Route::get('/uang-masuk', [UangMasukController::class, 'index'])->name('uang-masuk.index');
 Route::post('/uang-masuk', [UangMasukController::class, 'store'])->name('uangmasuk.store');
 Route::get('/uang-keluar', [UangKeluarController::class, 'index'])->name('uang-keluar.index');
-Route::post('/uang-keluar', [UangMasukController::class, 'store'])->name('uangkeluar.store');
+Route::post('/uang-keluar', [UangKeluarController::class, 'store'])->name('uangkeluar.store');
+Route::get('/input-gaji', [InputGajiController::class, 'index'])->name('input-gaji.index');
+Route::post('/input-gaji', [InputGajiController::class, 'store'])->name('input-gaji.store');
 
 //untuk Uang Gaji
 Route::get('/gaji', [GajiController::class, 'index'])->name('gaji.index');
