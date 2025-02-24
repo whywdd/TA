@@ -39,6 +39,8 @@ Route::get('/gaji', [GajiController::class, 'index'])->name('gaji.index');
 
 //untuk Laporan
 Route::get('/Laporan', [LaporanController::class, 'index'])->name('Laporan.index');
+Route::get('/laporan/export-excel', [LaporanController::class, 'exportExcel'])->name('laporan.export-excel');
+Route::get('/laporan/export-pdf', [LaporanController::class, 'exportPDF'])->name('laporan.export-pdf');
 
 //untuk Home
 Route::get('/home', [HomeController::class, 'index'])->name('home');

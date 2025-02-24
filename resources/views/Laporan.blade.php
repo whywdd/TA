@@ -170,17 +170,39 @@
             <!-- Action Buttons -->
             <div class="flex justify-between items-center mt-4 mb-4">
                 <div class="flex space-x-2">
-                    <button class="btn bg-green-500 text-white hover:bg-green-600">
+                    <a href="{{ route('laporan.export-excel') }}" class="btn bg-green-500 text-white hover:bg-green-600">
                         <i class="fas fa-file-excel mr-2"></i>Export Excel
-                    </button>
-                    <button class="btn bg-red-500 text-white hover:bg-red-600">
+                    </a>
+                    <a href="{{ route('laporan.export-pdf') }}" class="btn bg-red-500 text-white hover:bg-red-600">
                         <i class="fas fa-file-pdf mr-2"></i>Export PDF
-                    </button>
-                    <button class="btn bg-gray-500 text-white hover:bg-gray-600">
+                    </a>
+                    <button onclick="window.print()" class="btn bg-gray-500 text-white hover:bg-gray-600">
                         <i class="fas fa-print mr-2"></i>Print
                     </button>
                 </div>
+            </div>
 
+            <!-- Style untuk print -->
+            <style>
+                @media print {
+                    .btn, header, footer, .no-print {
+                        display: none !important;
+                    }
+                    body {
+                        padding: 20px;
+                        font-size: 14px;
+                    }
+                    .print-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+                    .print-table th,
+                    .print-table td {
+                        border: 1px solid #000;
+                        padding: 8px;
+                    }
+                }
+            </style>
 
             <!-- Pagination (same as before) -->
             <!-- Modal (same as before) -->
