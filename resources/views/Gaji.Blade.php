@@ -12,30 +12,29 @@
         <!-- Filter Keterangan -->
         <div class="flex flex-wrap gap-4 px-6 py-4 border-b border-gray-200">
             <div class="flex items-center">
-                <label class="mr-2 text-sm font-medium text-gray-600">Keterangan:</label>
-                <input type="text" id="filterKeterangan" placeholder="Masukkan keterangan" class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" onkeyup="filterTable()">
-                <button class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
+                <label class="mr-2 text-sm font-medium text-gray-600">Nama Karyawan:</label>
+                <input type="text" id="filterKeterangan" placeholder="Masukkan nama karyawan" class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" onkeyup="filterTable()">
+                <button class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors ml-2">
                     <i class="fas fa-search mr-2"></i>Filter
                 </button>
             </div>
         </div>
     
-        <div class="bg-white rounded-lg shadow-lg p-6">
-            <!-- Tabel Keterangan Gaji Karyawan -->
+        <div class="overflow-x-auto">
             <table id="gajiTable" class="min-w-full bg-white border border-gray-300">
                 <thead>
-                    <tr>
+                    <tr class="bg-gray-50">
                         <th class="py-2 px-4 border-b text-left">No</th>
-                        <th class="py-2 px-4 border-b text-left">Keterangan</th>
-                        <th class="py-2 px-4 border-b text-left">Nominal</th>
-                        <th class="py-2 px-4 border-b text-left">Aksi</th>
+                        <th class="py-2 px-4 border-b text-left">Nama Karyawan</th>
+                        <th class="py-2 px-4 border-b text-left">Nominal Gaji</th>
+                        <th class="py-2 px-4 border-b text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($gajiKaryawan as $index => $gaji)
+                    @forelse($gajiKaryawan as $index => $gaji)
                     <tr>
                         <td class="py-2 px-4 border-b">{{ $index + 1 }}</td>
-                        <td class="py-2 px-4 border-b">{{ $gaji->keterangan }}</td>
+                        <td class="py-2 px-4 border-b">{{ $gaji->nama_karyawan }}</td>
                         <td class="py-2 px-4 border-b">Rp {{ number_format($gaji->gaji, 0, ',', '.') }}</td>
                         <td class="py-3 px-4 text-center">
                             <div class="flex justify-center space-x-2">
@@ -48,7 +47,13 @@
                             </div>
                         </td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="4" class="py-4 px-4 text-center text-gray-500">
+                            Tidak ada data gaji karyawan
+                        </td>
+                    </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>

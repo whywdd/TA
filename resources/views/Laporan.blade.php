@@ -24,18 +24,25 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div class="bg-white p-4 rounded-lg shadow">
                     <h3 class="text-gray-500 text-sm">Total Pendapatan</h3>
-                    <p class="text-2xl font-bold text-green-600">Rp 5.000.000</p>
-                    <p class="text-sm text-gray-400">+15% dari bulan lalu</p>
+                    <p class="text-2xl font-bold text-green-600">Rp {{ number_format($totalUangMasuk, 0, ',', '.') }}</p>
+                    <p class="text-sm text-gray-400">Data realtime keuangan</p>
                 </div>
                 <div class="bg-white p-4 rounded-lg shadow">
                     <h3 class="text-gray-500 text-sm">Total Pengeluaran</h3>
-                    <p class="text-2xl font-bold text-red-600">Rp 3.200.000</p>
-                    <p class="text-sm text-gray-400">-5% dari bulan lalu</p>
+                    <p class="text-2xl font-bold text-red-600">Rp {{ number_format($totalKredit, 0, ',', '.') }}</p>
+                    <p class="text-sm text-gray-400">Data realtime keuangan</p>
                 </div>
                 <div class="bg-white p-4 rounded-lg shadow">
                     <h3 class="text-gray-500 text-sm">Laba Bersih</h3>
-                    <p class="text-2xl font-bold text-blue-600">Rp 1.800.000</p>
-                    <p class="text-sm text-gray-400">+25% dari bulan lalu</p>
+                    <p class="text-2xl font-bold text-blue-600">Rp {{ number_format($saldo, 0, ',', '.') }}</p>
+                    
+                    @if(isset($persentasePeningkatan))
+                        <p class="text-sm {{ $persentasePeningkatan >= 0 ? 'text-green-500' : 'text-red-500' }}">
+                            {{ $persentasePeningkatan >= 0 ? '+' : '' }}{{ number_format($persentasePeningkatan, 0) }}% dari bulan lalu
+                        </p>
+                    @else
+                        <p class="text-sm text-gray-400">Data realtime keuangan</p>
+                    @endif
                 </div>
                 <div class="bg-white p-4 rounded-lg shadow">
                     <h3 class="text-gray-500 text-sm">Saldo Kas</h3>
@@ -99,37 +106,61 @@
                         </tr>
                     </thead>
                     <tbody id="tableBody">
-                        <!-- Example data with more accounting details -->
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4">1</td>
-                            <td class="py-3 px-4">2024-02-20</td>
-                            <td class="py-3 px-4">411</td>
-                            <td class="py-3 px-4">Penjualan</td>
-                            <td class="py-3 px-4">Pendapatan dari penjualan produk A</td>
-                            <td class="py-3 px-4 text-right text-green-600">Rp 5.000.000</td>
-                            <td class="py-3 px-4 text-right text-red-600">-</td>
-                            <td class="py-3 px-4 text-right font-medium">Rp 5.000.000</td>
-                            <td class="py-3 px-4 text-center">
-                                <div class="flex justify-center space-x-2">
-                                    <button class="text-blue-600 hover:text-blue-800" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="text-green-600 hover:text-green-800" title="Detail">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button class="text-red-600 hover:text-red-800" title="Hapus">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                        <!-- Looping data dari database -->
+                        @php 
+                            $no = 1; 
+                            $runningSaldo = 0;
+                        @endphp
+                        
+                        @foreach($laporan as $item)
+                            @php
+                                $debit = $item->uang_masuk;
+                                $kredit = $item->uang_keluar + $item->gaji;
+                                $runningSaldo += $debit - $kredit;
+                            @endphp
+                            <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                <td class="py-3 px-4">{{ $no++ }}</td>
+                                <td class="py-3 px-4">{{ $item->Tanggal->format('Y-m-d') }}</td>
+                                <td class="py-3 px-4">{{ $item->kode }}</td>
+                                <td class="py-3 px-4">{{ $item->kategori }}</td>
+                                <td class="py-3 px-4">{{ $item->keterangan }}</td>
+                                <td class="py-3 px-4 text-right text-green-600">
+                                    @if($debit > 0)
+                                        Rp {{ number_format($debit, 0, ',', '.') }}
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td class="py-3 px-4 text-right text-red-600">
+                                    @if($kredit > 0)
+                                        Rp {{ number_format($kredit, 0, ',', '.') }}
+                                    @else
+                                        -
+                                    @endif
+                                </td>
+                                <td class="py-3 px-4 text-right font-medium">Rp {{ number_format($runningSaldo, 0, ',', '.') }}</td>
+                                <td class="py-3 px-4 text-center">
+                                    <div class="flex justify-center space-x-2">
+                                        <button class="text-blue-600 hover:text-blue-800" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="text-green-600 hover:text-green-800" title="Detail">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="text-red-600 hover:text-red-800" title="Hapus">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
                     </tbody>
                     <tfoot>
                         <tr class="bg-gray-50 font-bold">
                             <td colspan="5" class="py-3 px-4 text-right">Total:</td>
-                            <td class="py-3 px-4 text-right text-green-600">Rp 5.000.000</td>
-                            <td class="py-3 px-4 text-right text-red-600">Rp 0</td>
-                            <td class="py-3 px-4 text-right">Rp 5.000.000</td>
+                            <td class="py-3 px-4 text-right text-green-600">Rp {{ number_format($totalUangMasuk, 0, ',', '.') }}</td>
+                            <td class="py-3 px-4 text-right text-red-600">Rp {{ number_format($totalKredit, 0, ',', '.') }}</td>
+                            <td class="py-3 px-4 text-right">Rp {{ number_format($saldo, 0, ',', '.') }}</td>
                             <td></td>
                         </tr>
                     </tfoot>
@@ -149,10 +180,7 @@
                         <i class="fas fa-print mr-2"></i>Print
                     </button>
                 </div>
-                <button class="btn bg-blue-500 text-white hover:bg-blue-600">
-                    <i class="fas fa-plus mr-2"></i>Tambah Transaksi
-                </button>
-            </div>
+
 
             <!-- Pagination (same as before) -->
             <!-- Modal (same as before) -->

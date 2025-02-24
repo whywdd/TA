@@ -32,7 +32,7 @@ Route::post('/uang-masuk', [UangMasukController::class, 'store'])->name('uangmas
 Route::get('/uang-keluar', [UangKeluarController::class, 'index'])->name('uang-keluar.index');
 Route::post('/uang-keluar', [UangKeluarController::class, 'store'])->name('uangkeluar.store');
 Route::get('/input-gaji', [InputGajiController::class, 'index'])->name('input-gaji.index');
-Route::post('/input-gaji', [InputGajiController::class, 'store'])->name('input-gaji.store');
+// Route::post('/input-gaji', [InputGajiController::class, 'store'])->name('input-gaji.store');
 
 //untuk Uang Gaji
 Route::get('/gaji', [GajiController::class, 'index'])->name('gaji.index');

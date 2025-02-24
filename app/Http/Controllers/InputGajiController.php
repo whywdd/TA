@@ -35,9 +35,8 @@ class InputGajiController extends Controller
                 'kode' => $kode,
                 'kategori' => $validated['kategori'],
                 'nama_karyawan' => $validated['nama_karyawan'],
-                'keterangan' => null,
-                'uang_masuk' => 0,
-                'uang_keluar' => 0,
+                'uang_masuk' => null,
+                'uang_keluar' => null,
                 'gaji' => $gaji,
             ]);
 

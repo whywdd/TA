@@ -29,15 +29,15 @@ class UangMasukController extends Controller
             // Tentukan kode berdasarkan kategori
             $kode = $this->generateKode($validated['kategori']);
 
-            // Simpan data
+            // Simpan data dengan nilai null untuk uang_keluar dan gaji
             UangMasukModel::create([
                 'Tanggal' => $validated['Tanggal'],
                 'kode' => $kode,
                 'kategori' => $validated['kategori'],
                 'keterangan' => $validated['keterangan'],
                 'uang_masuk' => $uang_masuk,
-                'uang_keluar' => 0,
-                'gaji' => 0,
+                'uang_keluar' => null, // Mengizinkan null
+                'gaji' => null, // Mengizinkan null
             ]);
 
             return redirect()->back()->with('success', 'Data berhasil disimpan!');

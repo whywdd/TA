@@ -35,9 +35,9 @@ class UangKeluarController extends Controller
                 'kode' => $kode,
                 'kategori' => $validated['kategori'],
                 'keterangan' => $validated['keterangan'],
-                'uang_masuk' => 0,
+                'uang_masuk' => null,
                 'uang_keluar' => $uang_keluar,
-                'gaji' => 0,
+                'gaji' => null,
             ]);
 
             return redirect()->back()->with('success', 'Data berhasil disimpan!');

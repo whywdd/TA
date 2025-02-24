@@ -9,8 +9,12 @@ class GajiController extends Controller
 {
     public function index()
     {
-        // Ambil semua data gaji dari database
-        $gajiKaryawan = GajiModel::all(); // Anda bisa menambahkan filter atau pagination jika diperlukan
-        return view('Gaji', compact('gajiKaryawan')); // Kirim data ke view
+        // Ambil hanya data yang memiliki nilai gaji dan tidak null
+        $gajiKaryawan = GajiModel::whereNotNull('gaji')
+            ->where('gaji', '>', 0)
+            ->select('nama_karyawan', 'gaji') // Ambil kolom nama_karyawan dan gaji
+            ->get();
+            
+        return view('Gaji', compact('gajiKaryawan'));
     }
 }
