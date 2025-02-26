@@ -36,10 +36,10 @@
                 >
                     <option value="" disabled selected>Pilih Kategori Akun</option>
                     <optgroup label="Akun Kewajiban → Kategori untuk utang atau kewajiban perusahaan">
-                        <option value="utang_gaji">Utang gaji</option>
+                        <option value="utang gaji">Utang gaji</option>
                     </optgroup>
                     <optgroup label="Akun Beban → Kategori untuk biaya operasional">
-                        <option value="beban_gaji">Beban gaji</option>
+                        <option value="beban gaji">Beban gaji</option>
                     </optgroup>
                 </select>
             </div>

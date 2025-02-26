@@ -40,15 +40,19 @@
                         <option value="kas">Kas</option>
                         <option value="piutang">Piutang usaha</option>
                     </optgroup>
+
+                    <optgroup label="Akun Ekuitas → Kategori untuk modal pemilik">
+                        <option value="modal usaha" data-kode="MP">Modal usaha</option>
+                    </optgroup>
                     
                     <optgroup label="Akun Kewajiban → Kategori untuk utang atau kewajiban perusahaan">
-                        <option value="utang_usaha">Utang usaha</option>
-                        <option value="utang_bank">Utang bank</option>
+                        <option value="utang usaha">Utang usaha</option>
+                        <option value="utang bank">Utang bank</option>
                     </optgroup>
                     
                     <optgroup label="Akun Beban → Kategori untuk biaya operasional">
-                        <option value="beban_listrik">Beban listrik</option>
-                        <option value="beban_sewa">Beban sewa</option>
+                        <option value="beban listrik">Beban listrik</option>
+                        <option value="beban sewa">Beban sewa</option>
                     </optgroup>
                 </select>
             </div>

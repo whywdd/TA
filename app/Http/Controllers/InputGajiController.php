@@ -51,10 +51,10 @@ class InputGajiController extends Controller
         // Tentukan kode dasar berdasarkan kategori
         $kodeDasar = 0;
         switch ($kategori) {
-            case 'utang_gaji':
+            case 'utang gaji':
                 $kodeDasar = 2;
                 break;
-            case 'beban_gaji':
+            case 'beban gaji':
                 $kodeDasar = 5;
                 break;
             default:

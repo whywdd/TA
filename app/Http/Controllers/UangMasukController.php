@@ -54,13 +54,13 @@ class UangMasukController extends Controller
             case 'kas':
                 $kodeDasar = 1;
                 break;
-            case 'modal_pemilik':
+            case 'modal pemilik':
                 $kodeDasar = 3;
                 break;
-            case 'pendapatan_penjualan':
+            case 'pendapatan penjualan':
                 $kodeDasar = 4;
                 break;
-            case 'pendapatan_jasa':
+            case 'pendapatan jasa':
                 $kodeDasar = 4; // Jika ada kode yang sama, bisa disesuaikan
                 break;
             default:

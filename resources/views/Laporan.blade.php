@@ -34,7 +34,7 @@
                 </div>
                 <div class="bg-white p-4 rounded-lg shadow">
                     <h3 class="text-gray-500 text-sm">Laba Bersih</h3>
-                    <p class="text-2xl font-bold text-blue-600">Rp {{ number_format($saldo, 0, ',', '.') }}</p>
+                    <p class="text-2xl font-bold text-blue-600">Rp {{ number_format(($saldo > 0) ? $saldo : 0, 0, ',', '.') }}</p>
                     
                     @if(isset($persentasePeningkatan))
                         <p class="text-sm {{ $persentasePeningkatan >= 0 ? 'text-green-500' : 'text-red-500' }}">
@@ -45,9 +45,9 @@
                     @endif
                 </div>
                 <div class="bg-white p-4 rounded-lg shadow">
-                    <h3 class="text-gray-500 text-sm">Saldo Kas</h3>
-                    <p class="text-2xl font-bold text-gray-700">Rp 12.500.000</p>
-                    <p class="text-sm text-gray-400">Per tanggal hari ini</p>
+                    <h3 class="text-gray-500 text-sm">Rugi</h3>
+                    <p class="text-2xl font-bold text-gray-700">Rp {{ number_format(($saldo < 0) ? $saldo : 0, 0, ',', '.') }}</p>
+                    <p class="text-sm text-gray-400">Data realtime keuangan</p>
                 </div>
             </div>
 
@@ -123,7 +123,7 @@
                                 <td class="py-3 px-4">{{ $item->Tanggal->format('Y-m-d') }}</td>
                                 <td class="py-3 px-4">{{ $item->kode }}</td>
                                 <td class="py-3 px-4">{{ $item->kategori }}</td>
-                                <td class="py-3 px-4">{{ $item->keterangan }}</td>
+                                <td class="py-3 px-4">{{ $item->keterangan }}  {{ $item->nama_karyawan }}</td>
                                 <td class="py-3 px-4 text-right text-green-600">
                                     @if($debit > 0)
                                         Rp {{ number_format($debit, 0, ',', '.') }}

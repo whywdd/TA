@@ -54,16 +54,19 @@ class UangKeluarController extends Controller
             case 'kas':
                 $kodeDasar = 1;
                 break;
-            case 'utang_usaha':
+            case 'utang usaha':
                 $kodeDasar = 2;
                 break;
-            case 'utang_bank':
+            case 'utang bank':
                 $kodeDasar = 2;
                 break;    
-            case 'beban_listrik':
+            case 'modal usaha':
+                $kodeDasar = 3;
+                break;    
+            case 'beban listrik':
                 $kodeDasar = 5;
                 break; 
-            case 'beban_sewa':
+            case 'beban sewa':
                 $kodeDasar = 5;
                 break; 
             default:

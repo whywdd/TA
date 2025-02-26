@@ -32,15 +32,15 @@ Route::post('/uang-masuk', [UangMasukController::class, 'store'])->name('uangmas
 Route::get('/uang-keluar', [UangKeluarController::class, 'index'])->name('uang-keluar.index');
 Route::post('/uang-keluar', [UangKeluarController::class, 'store'])->name('uangkeluar.store');
 Route::get('/input-gaji', [InputGajiController::class, 'index'])->name('input-gaji.index');
-// Route::post('/input-gaji', [InputGajiController::class, 'store'])->name('input-gaji.store');
+Route::post('/input-gaji', [InputGajiController::class, 'store'])->name('input-gaji.store');
 
 //untuk Uang Gaji
 Route::get('/gaji', [GajiController::class, 'index'])->name('gaji.index');
 
 //untuk Laporan
 Route::get('/Laporan', [LaporanController::class, 'index'])->name('Laporan.index');
-Route::get('/laporan/export-excel', [LaporanController::class, 'exportExcel'])->name('laporan.export-excel');
-Route::get('/laporan/export-pdf', [LaporanController::class, 'exportPDF'])->name('laporan.export-pdf');
+Route::get('laporan/export-excel', [App\Http\Controllers\LaporanController::class, 'exportExcel'])->name('laporan.export-excel');
+Route::get('laporan/export-pdf', [App\Http\Controllers\LaporanController::class, 'exportPDF'])->name('laporan.export-pdf');
 
 //untuk Home
 Route::get('/home', [HomeController::class, 'index'])->name('home');

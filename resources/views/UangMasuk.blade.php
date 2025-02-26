@@ -42,12 +42,12 @@
                     </optgroup>
                     
                     <optgroup label="Akun Ekuitas → Kategori untuk modal pemilik">
-                        <option value="modal_pemilik" data-kode="MP">Modal pemilik</option>
+                        <option value="modal pemilik" data-kode="MP">Modal pemilik</option>
                     </optgroup>
                     
                     <optgroup label="Akun Pendapatan → Kategori untuk pemasukan perusahaan">
-                        <option value="pendapatan_penjualan" data-kode="PP">Pendapatan penjualan</option>
-                        <option value="pendapatan_jasa" data-kode="PJ">Pendapatan jasa</option>
+                        <option value="pendapatan penjualan" data-kode="PP">Pendapatan penjualan</option>
+                        <option value="pendapatan jasa" data-kode="PJ">Pendapatan jasa</option>
                     </optgroup>
                 </select>
             </div>
