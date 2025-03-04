@@ -7,7 +7,9 @@ use App\Http\Controllers\SidebarController;
 use App\Http\Controllers\UangMasukController;
 use App\Http\Controllers\UangKeluarController;
 use App\Http\Controllers\InputGajiController;
+use App\Http\Controllers\ModalKaryawanController;
 use App\Http\Controllers\GajiController;
+use App\Http\Controllers\DataKaryawanController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\UserController;
@@ -36,6 +38,11 @@ Route::post('/input-gaji', [InputGajiController::class, 'store'])->name('input-g
 
 //untuk Uang Gaji
 Route::get('/gaji', [GajiController::class, 'index'])->name('gaji.index');
+
+// Tambahkan Data Karyawan
+Route::get('/data-karyawan', [DataKaryawanController::class, 'index'])->name('data-karyawan.index');
+Route::post('/data-karyawan', [DataKaryawanController::class, 'store'])->name('karyawan.store');
+Route::resource('modal-karyawan', ModalKaryawanController::class);
 
 //untuk Laporan
 Route::get('/Laporan', [LaporanController::class, 'index'])->name('Laporan.index');

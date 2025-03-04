@@ -53,40 +53,42 @@
 
             <!-- Enhanced Filter Section -->
             <div class="flex flex-wrap gap-4 px-6 py-4 border-b border-gray-200">
-                <div class="flex items-center">
-                    <label class="mr-2 text-sm font-medium text-gray-600">Periode:</label>
-                    <select class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="daily">Harian</option>
-                        <option value="weekly">Mingguan</option>
-                        <option value="monthly" selected>Bulanan</option>
-                        <option value="yearly">Tahunan</option>
-                    </select>
-                </div>
-                <div class="flex items-center">
-                    <label class="mr-2 text-sm font-medium text-gray-600">Dari:</label>
-                    <input type="date" class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div class="flex items-center">
-                    <label class="mr-2 text-sm font-medium text-gray-600">Sampai:</label>
-                    <input type="date" class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div class="flex items-center">
-                    <label class="mr-2 text-sm font-medium text-gray-600">Kategori:</label>
-                    <select class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="">Semua Kategori</option>
-                        <option value="penjualan">Penjualan</option>
-                        <option value="pembelian">Pembelian</option>
-                        <option value="gaji">Gaji & Upah</option>
-                        <option value="operasional">Biaya Operasional</option>
-                        <option value="lainnya">Lainnya</option>
-                    </select>
-                </div>
-                <button class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
-                    <i class="fas fa-search mr-2"></i>Filter
-                </button>
-                <button class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors">
-                    <i class="fas fa-redo mr-2"></i>Reset
-                </button>
+                <form id="filterForm" class="flex flex-wrap gap-4 w-full" onsubmit="applyFilter(event)">
+                    <div class="flex items-center">
+                        <label for="periode" class="mr-2 text-sm font-medium text-gray-600">Periode:</label>
+                        <select id="periode" name="periode" class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="handlePeriodeChange()">
+                            <option value="daily">Harian</option>
+                            <option value="weekly">Mingguan</option>
+                            <option value="monthly" selected>Bulanan</option>
+                            <option value="yearly">Tahunan</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center">
+                        <label for="startDate" class="mr-2 text-sm font-medium text-gray-600">Dari:</label>
+                        <input type="date" id="startDate" name="startDate" class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="flex items-center">
+                        <label for="endDate" class="mr-2 text-sm font-medium text-gray-600">Sampai:</label>
+                        <input type="date" id="endDate" name="endDate" class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="flex items-center">
+                        <label for="category" class="mr-2 text-sm font-medium text-gray-600">Kategori:</label>
+                        <select id="category" name="category" class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Semua Kategori</option>
+                            <option value="penjualan">Penjualan</option>
+                            <option value="pembelian">Pembelian</option>
+                            <option value="gaji">Gaji & Upah</option>
+                            <option value="operasional">Biaya Operasional</option>
+                            <option value="lainnya">Lainnya</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
+                        <i class="fas fa-search mr-2"></i>Filter
+                    </button>
+                    <button type="button" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors" onclick="resetFilter()">
+                        <i class="fas fa-redo mr-2"></i>Reset
+                    </button>
+                </form>
             </div>
 
             <!-- Enhanced Table -->
@@ -144,9 +146,6 @@
                                         <button class="text-blue-600 hover:text-blue-800" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button class="text-green-600 hover:text-green-800" title="Detail">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
                                         <button class="text-red-600 hover:text-red-800" title="Hapus">
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -166,6 +165,26 @@
                     </tfoot>
                 </table>
             </div>
+
+            <div class="intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center py-5 px-4 bg-white rounded-md shadow-md">
+            <!-- Filter Rows per Page -->
+            <div class="flex items-center space-x-2 flex-grow">
+                <label for="rowsPerPage" class="text-sm font-medium">Rows per page:</label>
+                <select id="rowsPerPage" class="border rounded-md py-3 px-6 ml-1 text-sm focus:outline-none focus:ring focus:border-blue-300">
+                    <option value="5" selected>5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="all">All</option>
+                </select>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div class="flex items-center space-x-4 ml-2">
+                <button id="prevPage" class="text-sm px-3 py-2 border rounded-md bg-gray-100 hover:bg-gray-200 focus:outline-none">Previous</button>
+                <span id="pageIndicator" class="text-sm font-medium">Page 1</span>
+                <button id="nextPage" class="text-sm px-3 py-2 border rounded-md bg-gray-100 hover:bg-gray-200 focus:outline-none">Next</button>
+            </div>
+        </div>
 
             <!-- Action Buttons -->
             <div class="flex justify-between items-center mt-4 mb-4">
@@ -209,5 +228,136 @@
             <!-- JavaScript (same as before) -->
         </div>
     </div>
+
+<script>
+// Fungsi pagination yang sudah ada (jika ada)...
+
+document.addEventListener('DOMContentLoaded', function() {
+    const table = document.querySelector('table');
+    const tbody = table.querySelector('tbody');
+    const rows = tbody.getElementsByTagName('tr');
+    const rowsPerPageSelect = document.getElementById('rowsPerPage');
+    const prevButton = document.getElementById('prevPage');
+    const nextButton = document.getElementById('nextPage');
+    const pageIndicator = document.getElementById('pageIndicator');
+    
+    let currentPage = 1;
+    let rowsPerPage = parseInt(rowsPerPageSelect.value);
+    
+    function displayTableRows() {
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        let visibleRows = 0;
+        
+        // Sembunyikan semua baris terlebih dahulu
+        Array.from(rows).forEach((row, index) => {
+            if (index >= start && index < end) {
+                row.style.display = '';
+                visibleRows++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        // Update page indicator
+        const totalPages = Math.ceil(rows.length / rowsPerPage);
+        pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
+        
+        // Update button states
+        prevButton.disabled = currentPage === 1;
+        nextButton.disabled = currentPage >= totalPages;
+        
+        // Tambahkan class untuk styling button disabled
+        if (prevButton.disabled) {
+            prevButton.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+            prevButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+        
+        if (nextButton.disabled) {
+            nextButton.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+            nextButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    }
+    
+    // Event listener untuk rows per page
+    rowsPerPageSelect.addEventListener('change', function() {
+        if (this.value === 'all') {
+            rowsPerPage = rows.length;
+        } else {
+            rowsPerPage = parseInt(this.value);
+        }
+        currentPage = 1;
+        displayTableRows();
+        
+        // Simpan preferensi di localStorage
+        localStorage.setItem('preferredRowsPerPage', this.value);
+    });
+    
+    // Event listener untuk previous button
+    prevButton.addEventListener('click', function() {
+        if (currentPage > 1) {
+            currentPage--;
+            displayTableRows();
+        }
+    });
+    
+    // Event listener untuk next button
+    nextButton.addEventListener('click', function() {
+        if (currentPage < Math.ceil(rows.length / rowsPerPage)) {
+            currentPage++;
+            displayTableRows();
+        }
+    });
+    
+    // Load saved preference dari localStorage
+    const savedRowsPerPage = localStorage.getItem('preferredRowsPerPage');
+    if (savedRowsPerPage) {
+        rowsPerPageSelect.value = savedRowsPerPage;
+        if (savedRowsPerPage === 'all') {
+            rowsPerPage = rows.length;
+        } else {
+            rowsPerPage = parseInt(savedRowsPerPage);
+        }
+    }
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowLeft' && !prevButton.disabled) {
+            prevButton.click();
+        } else if (e.key === 'ArrowRight' && !nextButton.disabled) {
+            nextButton.click();
+        }
+    });
+    
+    // Initial display
+    displayTableRows();
+});
+
+// Tambahkan ini ke dalam script yang sudah ada
+function updateTable() {
+    // Panggil displayTableRows setelah filter diterapkan
+    displayTableRows();
+}
+
+// Update fungsi applyFilter yang sudah ada
+function applyFilter(event) {
+    event.preventDefault();
+    const formData = new FormData(document.getElementById('filterForm'));
+    const queryString = new URLSearchParams(formData).toString();
+    
+    // Tambahkan callback untuk update table setelah filter
+    fetch(`${window.location.pathname}?${queryString}`)
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newTbody = doc.querySelector('tbody');
+            document.querySelector('tbody').innerHTML = newTbody.innerHTML;
+            updateTable();
+        });
+}
+</script>
 </body>
 @endsection

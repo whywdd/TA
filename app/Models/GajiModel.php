@@ -10,7 +10,7 @@ class GajiModel extends Model
     use HasFactory;
 
     // Nama tabel yang digunakan
-    protected $table = 'laporan_transaksis'; // Ganti dengan nama tabel yang sesuai
+    protected $table = 'karyawans';
 
     // Primary key
     protected $primaryKey = 'id';
@@ -23,13 +23,9 @@ class GajiModel extends Model
 
     // Kolom yang dapat diisi
     protected $fillable = [
-        'Tanggal',
-        'kode',
-        'kategori',
-        'keterangan',
-        'nama_karyawan',
-        'uang_masuk',
-        'uang_keluar',
+        'nama',
+        'usia',
+        'jabatan',
         'gaji'
     ];
 
@@ -41,9 +37,6 @@ class GajiModel extends Model
     const UPDATED_AT = 'updated_at';
 
     protected $casts = [
-        'Tanggal' => 'date',
-        'uang_masuk' => 'decimal:2',
-        'uang_keluar' => 'decimal:2',
         'gaji' => 'decimal:2',
     ];
 }
