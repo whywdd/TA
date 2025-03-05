@@ -3,13 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\InputGajiModel; // Import model
+use App\Models\GajiModel; // Tambahkan import model karyawan
 use Illuminate\Http\Request;
 
 class InputGajiController extends Controller
 {
     public function index()
     {
-        return view('InputGaji');
+        // Ambil data karyawan untuk dropdown
+        $karyawans = GajiModel::all();
+        return view('InputGaji', compact('karyawans'));
     }
 
     public function store(Request $request)
@@ -29,12 +32,16 @@ class InputGajiController extends Controller
             // Tentukan kode berdasarkan kategori
             $kode = $this->generateKode($validated['kategori']);
 
+            // Cari data karyawan
+            $karyawan = GajiModel::where('nama', $validated['nama_karyawan'])->first();
+            
             // Simpan data
             InputGajiModel::create([
                 'Tanggal' => $validated['Tanggal'],
                 'kode' => $kode,
                 'kategori' => $validated['kategori'],
                 'nama_karyawan' => $validated['nama_karyawan'],
+                'keterangan' => 'Gaji karyawan ' . $validated['nama_karyawan'],
                 'uang_masuk' => null,
                 'uang_keluar' => null,
                 'gaji' => $gaji,

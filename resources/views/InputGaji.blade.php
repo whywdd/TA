@@ -49,13 +49,20 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                     Nama Karyawan <span class="text-red-600">*</span>
                 </label>
-                <input 
-                    type="text" 
+                <select 
                     name="nama_karyawan"
+                    id="nama_karyawan"
                     class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                    placeholder="Masukkan nama karyawan"
                     required
+                    onchange="updateGaji(this)"
                 >
+                    <option value="" disabled selected>Pilih Karyawan</option>
+                    @foreach($karyawans as $karyawan)
+                        <option value="{{ $karyawan->nama }}" data-gaji="{{ $karyawan->gaji }}">
+                            {{ $karyawan->nama }} - {{ $karyawan->jabatan }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
 
             <!-- Total Gaji -->
@@ -68,13 +75,14 @@
                     <input 
                         type="text" 
                         name="gaji"
+                        id="gaji"
                         class="w-full border rounded-lg pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="0"
                         required
                         oninput="formatNumber(this)"
                     >
                 </div>
-                <p class="text-xs text-gray-500 mt-1">Masukkan angka tanpa tanda titik atau koma</p>
+                <p class="text-xs text-gray-500 mt-1">Gaji akan terisi otomatis sesuai data karyawan, namun dapat diubah manual</p>
             </div>
 
             <!-- Tombol Submit -->
@@ -112,6 +120,17 @@ function formatNumber(input) {
     }
     
     input.value = value;
+}
+
+function updateGaji(selectElement) {
+    const selectedOption = selectElement.options[selectElement.selectedIndex];
+    const gajiInput = document.getElementById('gaji');
+    if (selectedOption.dataset.gaji) {
+        const formattedGaji = new Intl.NumberFormat('id-ID').format(selectedOption.dataset.gaji);
+        gajiInput.value = formattedGaji;
+    } else {
+        gajiInput.value = '';
+    }
 }
 
 // Set default date to today
