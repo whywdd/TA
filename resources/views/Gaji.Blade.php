@@ -54,10 +54,14 @@
                 <td class="py-2 px-4 border-b">Rp {{ number_format($gaji->gaji, 0, ',', '.') }}</td>
                 <td class="py-3 px-4 text-center">
                     <div class="flex justify-center space-x-2">
-                        <button class="text-blue-600 hover:text-blue-800" title="Edit">
+                        <a href="{{ route('gaji.edit', $gaji->id) }}" 
+                           class="text-blue-600 hover:text-blue-800" 
+                           title="Edit">
                             <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="text-red-600 hover:text-red-800" title="Hapus">
+                        </a>
+                        <button onclick="deleteGaji({{ $gaji->id }})" 
+                                class="text-red-600 hover:text-red-800" 
+                                title="Hapus">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -108,6 +112,28 @@ function filterTable() {
             const txtValue = td.textContent || td.innerText;
             tr[i].style.display = txtValue.toLowerCase().indexOf(filter) > -1 ? '' : 'none';
         }
+    }
+}
+
+function deleteGaji(id) {
+    if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+        fetch(`/gaji/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json'
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat menghapus data');
+        });
     }
 }
 </script>

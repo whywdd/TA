@@ -24,4 +24,24 @@ class GajiController extends Controller
         $karyawan = GajiModel::findOrFail($id);
         return response()->json($karyawan);
     }
+
+    public function edit($id)
+    {
+        $karyawan = GajiModel::findOrFail($id);
+        return view('GajiEdit', compact('karyawan'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $karyawan = GajiModel::findOrFail($id);
+        $karyawan->update($request->all());
+        return redirect()->route('gaji.index')->with('success', 'Data gaji berhasil diperbarui');
+    }
+
+    public function destroy($id)
+    {
+        $karyawan = GajiModel::findOrFail($id);
+        $karyawan->delete();
+        return response()->json(['success' => true]);
+    }
 }

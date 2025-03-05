@@ -38,6 +38,9 @@ Route::post('/input-gaji', [InputGajiController::class, 'store'])->name('input-g
 
 //untuk Uang Gaji
 Route::get('/gaji', [GajiController::class, 'index'])->name('gaji.index');
+Route::delete('/gaji/{id}', [GajiController::class, 'destroy'])->name('gaji.destroy');
+Route::get('/gaji/{id}/edit', [GajiController::class, 'edit'])->name('gaji.edit');
+Route::put('/gaji/{id}', [GajiController::class, 'update'])->name('gaji.update');
 
 // Tambahkan Data Karyawan
 Route::get('/data-karyawan', [DataKaryawanController::class, 'index'])->name('data-karyawan.index');
