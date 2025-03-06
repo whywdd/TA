@@ -50,19 +50,56 @@ class UangMasukController extends Controller
     {
         // Tentukan kode dasar berdasarkan kategori
         $kodeDasar = 0;
-        switch ($kategori) {
+        
+        // Ekstrak prefix kode dari value kategori
+        $kategoriPrefix = explode('_', $kategori)[0];
+        
+        switch ($kategoriPrefix) {
+            // Harta (Aset)
             case 'kas':
+            case 'bank':
+            case 'piutang':
+            case 'persediaan':
+            case 'sewa':
+            case 'asuransi':
+            case 'perlengkapan':
+            case 'biaya':
+            case 'investasi':
+            case 'tanah':
+            case 'gedung':
+            case 'kendaraan':
+            case 'mesin':
+            case 'perabotan':
+            case 'hak':
+            case 'goodwill':
+            case 'merek':
                 $kodeDasar = 1;
                 break;
-            case 'modal pemilik':
+            
+            // Utang (Kewajiban)
+            case 'utang':
+            case 'kredit':
+                $kodeDasar = 2;
+                break;
+            
+            // Modal (Ekuitas)
+            case 'modal':
+            case 'laba':
+            case 'dividen':
+            case 'prive':
                 $kodeDasar = 3;
                 break;
-            case 'pendapatan penjualan':
+            
+            // Pendapatan
+            case 'pendapatan':
                 $kodeDasar = 4;
                 break;
-            case 'pendapatan jasa':
-                $kodeDasar = 4; // Jika ada kode yang sama, bisa disesuaikan
+            
+            // Beban
+            case 'beban':
+                $kodeDasar = 5;
                 break;
+            
             default:
                 $kodeDasar = 0; // Kode default jika kategori tidak dikenali
         }

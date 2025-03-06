@@ -6,6 +6,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- Include the same CSS as before -->
     <style>
         /* Previous CSS styles remain the same */
@@ -146,7 +148,7 @@
                                         <button class="text-blue-600 hover:text-blue-800" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <button class="text-red-600 hover:text-red-800" title="Hapus">
+                                        <button onclick="hapusData({{ $item->id }})" class="text-red-600 hover:text-red-800" title="Hapus">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </div>
@@ -357,6 +359,32 @@ function applyFilter(event) {
             document.querySelector('tbody').innerHTML = newTbody.innerHTML;
             updateTable();
         });
+}
+
+function hapusData(id) {
+    if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+        fetch(`/laporan/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Data berhasil dihapus');
+                location.reload();
+            } else {
+                alert('Gagal menghapus data: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat menghapus data');
+        });
+    }
 }
 </script>
 </body>

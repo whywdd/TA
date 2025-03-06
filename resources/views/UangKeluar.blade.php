@@ -33,26 +33,100 @@
                     name="kategori"
                     class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
                     required
+                    onchange="updateTotalUang(this.value)"
                 >
                     <option value="" disabled selected>Pilih Kategori Akun</option>
                     
-                    <optgroup label="Akun Aset → Kategori yang mencatat kepemilikan perusahaan">
-                        <option value="kas">Kas</option>
-                        <option value="piutang">Piutang usaha</option>
+                    <optgroup label="1. HARTA (ASET)">
+                        <!-- Aset Lancar -->
+                        <optgroup label="&nbsp;&nbsp;&nbsp;Aset Lancar">
+                            <option value="kas" data-kode="1101">Kas/Kas Kecil</option>
+                            <option value="bank" data-kode="1102">Bank</option>
+                            <option value="piutang usaha" data-kode="1103">Piutang Usaha/Dagang</option>
+                            <option value="piutang wesel" data-kode="1104">Piutang Wesel</option>
+                            <option value="piutang karyawan" data-kode="1105">Piutang Karyawan</option>
+                            <option value="persediaan barang" data-kode="1106">Persediaan Barang Dagang</option>
+                            <option value="persediaan bahan" data-kode="1107">Persediaan Bahan Baku/Supplies</option>
+                            <option value="sewa dibayar dimuka" data-kode="1108">Sewa Dibayar di Muka</option>
+                            <option value="asuransi dibayar_dimuka" data-kode="1109">Asuransi Dibayar di Muka</option>
+                            <option value="perlengkapan kantor" data-kode="1110">Perlengkapan Kantor</option>
+                            <option value="biaya dibayar dimuka" data-kode="1111">Biaya Dibayar di Muka</option>
+                            <option value="investasi pendek" data-kode="1112">Investasi Jangka Pendek</option>
+                        </optgroup>
+                        
+                        <!-- Aset Tetap -->
+                        <optgroup label="&nbsp;&nbsp;&nbsp;Aset Tetap">
+                            <option value="tanah" data-kode="1201">Tanah</option>
+                            <option value="gedung" data-kode="1202">Gedung/Bangunan</option>
+                            <option value="kendaraan" data-kode="1203">Kendaraan</option>
+                            <option value="mesin" data-kode="1204">Mesin dan Peralatan</option>
+                            <option value="perabotan" data-kode="1205">Perabotan Kantor</option>
+                            <option value="hak paten" data-kode="1206">Hak Paten</option>
+                            <option value="hak cipta" data-kode="1207">Hak Cipta</option>
+                            <option value="goodwill" data-kode="1208">Goodwill</option>
+                            <option value="merek dagang" data-kode="1209">Merek Dagang</option>
+                        </optgroup>
                     </optgroup>
 
-                    <optgroup label="Akun Ekuitas → Kategori untuk modal pemilik">
-                        <option value="modal usaha" data-kode="MP">Modal usaha</option>
+                    <optgroup label="2. UTANG (KEWAJIBAN)">
+                        <!-- Utang Lancar -->
+                        <optgroup label="&nbsp;&nbsp;&nbsp;Utang Lancar">
+                            <option value="utang usaha" data-kode="2101">Utang Usaha/Dagang</option>
+                            <option value="utang wesel" data-kode="2102">Utang Wesel</option>
+                            <option value="utang gaji" data-kode="2103">Utang Gaji</option>
+                            <option value="utang bunga" data-kode="2104">Utang Bunga</option>
+                            <option value="utang pajak" data-kode="2105">Utang Pajak</option>
+                            <option value="utang dividen" data-kode="2106">Utang Dividen</option>
+                        </optgroup>
+                        
+                        <!-- Utang Jangka Panjang -->
+                        <optgroup label="&nbsp;&nbsp;&nbsp;Utang Jangka Panjang">
+                            <option value="utang hipotek" data-kode="2201">Utang Hipotek</option>
+                            <option value="utang obligasi" data-kode="2202">Utang Obligasi</option>
+                            <option value="kredit investasi" data-kode="2203">Kredit Investasi</option>
+                        </optgroup>
                     </optgroup>
-                    
-                    <optgroup label="Akun Kewajiban → Kategori untuk utang atau kewajiban perusahaan">
-                        <option value="utang usaha">Utang usaha</option>
-                        <option value="utang bank">Utang bank</option>
+
+                    <optgroup label="3. MODAL (EKUITAS)">
+                        <option value="modal pemilik" data-kode="3101">Modal Pemilik/Modal Disetor</option>
+                        <option value="modal saham" data-kode="3102">Modal Saham</option>
+                        <option value="laba ditahan" data-kode="3103">Laba Ditahan</option>
+                        <option value="dividen" data-kode="3104">Dividen</option>
+                        <option value="prive" data-kode="3105">Prive (Pengambilan Pribadi)</option>
                     </optgroup>
-                    
-                    <optgroup label="Akun Beban → Kategori untuk biaya operasional">
-                        <option value="beban listrik">Beban listrik</option>
-                        <option value="beban sewa">Beban sewa</option>
+
+                    <optgroup label="4. PENDAPATAN">
+                        <!-- Pendapatan Operasional -->
+                        <optgroup label="&nbsp;&nbsp;&nbsp;Pendapatan Operasional">
+                            <option value="pendapatan penjualan" data-kode="4101">Pendapatan Penjualan</option>
+                            <option value="pendapatan jasa" data-kode="4102">Pendapatan Jasa</option>
+                        </optgroup>
+                        
+                        <!-- Pendapatan Non-Operasional -->
+                        <optgroup label="&nbsp;&nbsp;&nbsp;Pendapatan Non-Operasional">
+                            <option value="pendapatan bunga" data-kode="4201">Pendapatan Bunga</option>
+                            <option value="pendapatan sewa" data-kode="4202">Pendapatan Sewa</option>
+                            <option value="pendapatan komisi" data-kode="4203">Pendapatan Komisi</option>
+                            <option value="pendapatan lain" data-kode="4204">Pendapatan Lain-lain</option>
+                        </optgroup>
+                    </optgroup>
+
+                    <optgroup label="5. BEBAN">
+                        <!-- Beban Operasional -->
+                        <optgroup label="&nbsp;&nbsp;&nbsp;Beban Operasional">
+                            <option value="beban gaji" data-kode="5101">Beban Gaji</option>
+                            <option value="beban sewa" data-kode="5102">Beban Sewa</option>
+                            <option value="beban utilitas" data-kode="5103">Beban Listrik, Air, dan Telepon</option>
+                            <option value="beban penyusutan" data-kode="5104">Beban Penyusutan</option>
+                            <option value="beban supplies" data-kode="5105">Beban Supplies/Perlengkapan</option>
+                            <option value="beban iklan" data-kode="5106">Beban Iklan/Promosi</option>
+                        </optgroup>
+                        
+                        <!-- Beban Non-Operasional -->
+                        <optgroup label="&nbsp;&nbsp;&nbsp;Beban Non-Operasional">
+                            <option value="beban bunga" data-kode="5201">Beban Bunga</option>
+                            <option value="beban lain" data-kode="5202">Beban Lain-lain</option>
+                        </optgroup>
                     </optgroup>
                 </select>
             </div>

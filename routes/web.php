@@ -51,6 +51,7 @@ Route::resource('modal-karyawan', ModalKaryawanController::class);
 Route::get('/Laporan', [LaporanController::class, 'index'])->name('Laporan.index');
 Route::get('laporan/export-excel', [App\Http\Controllers\LaporanController::class, 'exportExcel'])->name('laporan.export-excel');
 Route::get('laporan/export-pdf', [App\Http\Controllers\LaporanController::class, 'exportPDF'])->name('laporan.export-pdf');
+Route::delete('/laporan/{id}', [LaporanController::class, 'destroy'])->name('laporan.destroy');
 
 //untuk Home
 Route::get('/home', [HomeController::class, 'index'])->name('home');

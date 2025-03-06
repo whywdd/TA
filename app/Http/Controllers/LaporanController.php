@@ -180,4 +180,15 @@ class LaporanController extends Controller
             return redirect()->back()->with('error', 'Gagal mengekspor PDF: ' . $e->getMessage());
         }
     }
+
+    public function destroy($id)
+    {
+        try {
+            $laporan = LaporanModel::findOrFail($id);
+            $laporan->delete();
+            return response()->json(['success' => true, 'message' => 'Data berhasil dihapus']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Gagal menghapus data: ' . $e->getMessage()], 500);
+        }
+    }
 }
