@@ -151,10 +151,13 @@
                 </a>
             </li>
             <li class="mt-8">
-                <a href="#" class="nav-link flex items-center p-2 rounded-lg hover:bg-red-600 transition-colors">
-                    <i class="fas fa-sign-out-alt mr-3"></i>
-                    <span>Logout</span>
-                </a>
+                <form action="{{ route('logout') }}" method="POST" id="logout-form">
+                    @csrf
+                    <button type="submit" class="nav-link w-full flex items-center p-2 rounded-lg hover:bg-red-600 transition-colors">
+                        <i class="fas fa-sign-out-alt mr-3"></i>
+                        <span>Logout</span>
+                    </button>
+                </form>
             </li>
         </ul>
     </div>

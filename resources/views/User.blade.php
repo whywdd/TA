@@ -155,6 +155,13 @@
                     <label class="mr-2 text-sm font-medium text-gray-600">Password:</label>
                     <input type="password" id="userPassword" class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Password User">
                 </div>
+                <div class="flex items-center">
+                    <label class="mr-2 text-sm font-medium text-gray-600">Tipe Pengguna:</label>
+                    <select id="userType" class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="karyawan">Karyawan</option>
+                        <option value="owner">Owner</option>
+                    </select>
+                </div>
                 <button id="createUser" class="btn btn-primary">Buat Akun</button>
             </div>
 
@@ -165,6 +172,7 @@
                             <th class="py-3 px-4 text-left">No</th>
                             <th class="py-3 px-4 text-left">Nama</th>
                             <th class="py-3 px-4 text-left">Email</th>
+                            <th class="py-3 px-4 text-left">Tipe Pengguna</th>
                             <th class="py-3 px-4 text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -188,60 +196,16 @@
             fetch('/users/data')
                 .then(response => response.json())
                 .then(data => {
-                    console.log("Data dari API:", data);
                     const userTableBody = document.getElementById('userTableBody');
                     userTableBody.innerHTML = '';
                     
-                    // Menambahkan data pengguna baru
-                    userTableBody.innerHTML += `
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4">1</td>
-                            <td class="py-3 px-4">Widodo</td>
-                            <td class="py-3 px-4">widodo@gmail.com</td>
-                            <td class="py-3 px-4 text-center">
-                                <button onclick="editUser(1)" class="text-blue-600 hover:text-blue-800">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button onclick="deleteUser(1)" class="text-red-600 hover:text-red-800">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4">2</td>
-                            <td class="py-3 px-4">Siti</td>
-                            <td class="py-3 px-4">siti@gmail.com</td>
-                            <td class="py-3 px-4 text-center">
-                                <button onclick="editUser(2)" class="text-blue-600 hover:text-blue-800">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button onclick="deleteUser(2)" class="text-red-600 hover:text-red-800">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr class="border-b border-gray-200 hover:bg-gray-50">
-                            <td class="py-3 px-4">3</td>
-                            <td class="py-3 px-4">Budi</td>
-                            <td class="py-3 px-4">budi@gmail.com</td>
-                            <td class="py-3 px-4 text-center">
-                                <button onclick="editUser(3)" class="text-blue-600 hover:text-blue-800">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button onclick="deleteUser(3)" class="text-red-600 hover:text-red-800">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                    
-                    // Menambahkan data pengguna dari API
                     data.forEach((user, index) => {
                         userTableBody.innerHTML += `
                             <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                <td class="py-3 px-4">${index + 4}</td>
-                                <td class="py-3 px-4">${user.name}</td>
+                                <td class="py-3 px-4">${index + 1}</td>
+                                <td class="py-3 px-4">${user.nama}</td>
                                 <td class="py-3 px-4">${user.email}</td>
+                                <td class="py-3 px-4">${user.tipe_pengguna}</td>
                                 <td class="py-3 px-4 text-center">
                                     <button onclick="editUser(${user.id})" class="text-blue-600 hover:text-blue-800">
                                         <i class="fas fa-edit"></i>
@@ -257,27 +221,20 @@
                 .catch(error => console.error("Error fetching data:", error));
         }
 
+        // Function untuk mengedit user
+        function editUser(id) {
+            window.location.href = `/User/${id}/edit`;
+        }
+
         // Event listener for creating a user
         document.getElementById('createUser').addEventListener('click', () => {
-            const name = document.getElementById('userName').value;
+            const nama = document.getElementById('userName').value;
             const email = document.getElementById('userEmail').value;
             const password = document.getElementById('userPassword').value;
+            const tipe_pengguna = document.getElementById('userType').value;
 
-            fetch('/users/create', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ name, email, password }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                loadUsers(); // Reload users after creation
-                // Clear input fields
-                document.getElementById('userName').value = '';
-                document.getElementById('userEmail').value = '';
-                document.getElementById('userPassword').value = '';
-            });
+            // Redirect ke route User.create
+            window.location.href = "{{ route('User.create') }}";
         });
 
         // Initial load
