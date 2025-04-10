@@ -99,9 +99,9 @@
                     <thead>
                         <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
                             <th class="py-3 px-4 text-left">No</th>
-                            <th class="py-3 px-4 text-left">Tanggal</th>
+                            <!-- <th class="py-3 px-4 text-left">Tanggal</th> -->
                             <th class="py-3 px-4 text-left">Kode Akun</th>
-                            <th class="py-3 px-4 text-left">Kategori</th>
+                            <th class="py-3 px-4 text-left">Nama Akun</th>
                             <th class="py-3 px-4 text-left">Keterangan</th>
                             <th class="py-3 px-4 text-right">Debit</th>
                             <th class="py-3 px-4 text-right">Kredit</th>
@@ -124,7 +124,7 @@
                             @endphp
                             <tr class="border-b border-gray-200 hover:bg-gray-50">
                                 <td class="py-3 px-4">{{ $no++ }}</td>
-                                <td class="py-3 px-4">{{ $item->Tanggal->format('Y-m-d') }}</td>
+                                <!-- <td class="py-3 px-4">{{ $item->Tanggal->format('Y-m-d') }}</td> -->
                                 <td class="py-3 px-4">{{ $item->kode }}</td>
                                 <td class="py-3 px-4">{{ $item->kategori }}</td>
                                 <td class="py-3 px-4">{{ $item->keterangan }}  {{ $item->nama_karyawan }}</td>

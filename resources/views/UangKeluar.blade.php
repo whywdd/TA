@@ -27,7 +27,7 @@
             <!-- Kategori -->
             <div class="form-group">
                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Kategori <span class="text-red-600">*</span>
+                    Nama Akun <span class="text-red-600">*</span>
                 </label>
                 <select 
                     name="kategori"

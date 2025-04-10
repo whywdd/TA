@@ -114,24 +114,27 @@
                     <span>Home</span>
                 </a>
             </li>
+
+            @if(Auth::user()->tipe_pengguna == 'owner')
+            <!-- Menu yang hanya bisa diakses owner -->
             <li class="mb-4">
                 <a href="{{ route('uang-masuk.index') }}" class="nav-link flex items-center p-2 rounded-lg hover:bg-blue-700 transition-colors">
                     <i class="fas fa-money-bill-wave mr-3"></i>
-                    <span>Uang Masuk</span>
+                    <span>Bukti Transaksi</span>
                 </a>
             </li>
-            <li class="mb-4">
+            <!-- <li class="mb-4">
                 <a href="{{ route('uang-keluar.index') }}" class="nav-link flex items-center p-2 rounded-lg hover:bg-blue-700 transition-colors">
                     <i class="fas fa-money-bill-wave-alt mr-3"></i>
                     <span>Uang Keluar</span>
                 </a>
-            </li>
-            <li class="mb-4">
+            </li> -->
+            <!-- <li class="mb-4">
                 <a href="{{ route('input-gaji.index') }}" class="nav-link flex items-center p-2 rounded-lg hover:bg-blue-700 transition-colors">
                     <i class="fas fa-money-bill-wave-alt mr-3"></i>
                     <span>Input Gaji</span>
                 </a>
-            </li>
+            </li> -->
             <li class="mb-4">
                 <a href="{{ route('gaji.index') }}" class="nav-link flex items-center p-2 rounded-lg hover:bg-blue-700 transition-colors">
                     <i class="fas fa-user mr-3"></i>
@@ -146,10 +149,38 @@
             </li>
             <li class="mb-4">
                 <a href="{{ route('User.index') }}" class="nav-link flex items-center p-2 rounded-lg hover:bg-blue-700 transition-colors">
-                    <i class="fas fa-user mr-3"></i> <!-- Mengganti ikon dengan fa-user -->
+                    <i class="fas fa-user mr-3"></i>
                     <span>User</span>
                 </a>
             </li>
+            @else
+            <!-- Menu yang bisa diakses karyawan -->
+            <li class="mb-4">
+                <a href="{{ route('uang-masuk.index') }}" class="nav-link flex items-center p-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-money-bill-wave mr-3"></i>
+                    <span>Bukti Transaksi</span>
+                </a>
+            </li>
+            <!-- <li class="mb-4">
+                <a href="{{ route('uang-keluar.index') }}" class="nav-link flex items-center p-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-money-bill-wave-alt mr-3"></i>
+                    <span>Uang Keluar</span>
+                </a>
+            </li> -->
+            <li class="mb-4">
+                <a href="{{ route('Laporan.index') }}" class="nav-link flex items-center p-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-file-alt mr-3"></i>
+                    <span>Laporan</span>
+                </a>
+            </li>
+            <li class="mb-4">
+                <a href="{{ route('User.index') }}" class="nav-link flex items-center p-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-user mr-3"></i>
+                    <span>User</span>
+                </a>
+            </li>
+            @endif
+
             <li class="mt-8">
                 <form action="{{ route('logout') }}" method="POST" id="logout-form">
                     @csrf
@@ -184,9 +215,6 @@
 
                     <!-- Right Side - User Menu & Notifications -->
                     <div class="flex items-center space-x-4">
-                        <!-- Notifications -->
-
-
                         <!-- User Profile -->
                         <div class="relative" x-data="{ open: false }">
                             <div class="flex items-center space-x-3 cursor-pointer">
@@ -197,10 +225,13 @@
                                     </svg> 
                                     <div class="text-center text-xs mt-2"></div>
                                 </div>
-                                <span class="text-white font-medium">User Name</span> 
-                                <i class="fas fa-chevron-down text-white"></i>
+                                <span class="text-white font-medium">{{ Auth::user()->nama }}</span> 
+                                <!-- <i class="fas fa-chevron-down text-white"></i> -->
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Mobile Navigation Menu -->
             <div class="hidden md:hidden" id="mobile-menu">

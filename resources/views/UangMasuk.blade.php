@@ -4,8 +4,8 @@
 <div class="p-6 animate-fade-in">
     <!-- Header -->
     <div class="mb-4 bg-blue-600 text-white p-4 rounded-lg shadow-md">
-        <h1 class="text-2xl font-bold">Input Uang Masuk</h1>
-        <p class="text-sm mt-1">Formulir untuk menambahkan data uang Masuk</p>
+        <h1 class="text-2xl font-bold">Bukti Transaksi</h1>
+        <p class="text-sm mt-1">Formulir untuk menambahkan data Transaksi</p>
     </div>
     
     <div class="bg-white rounded-lg shadow-lg p-6">
@@ -24,10 +24,10 @@
                 >
             </div>
 
-            <!-- Kategori -->
+            <!-- Nama Akun -->
             <div class="form-group">
                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Kategori <span class="text-red-600">*</span>
+                    Nama Akun <span class="text-red-600">*</span>
                 </label>
                 <select 
                     name="kategori"
@@ -37,97 +37,98 @@
                 >
                     <option value="" disabled selected>Pilih Kategori Akun</option>
                     
-                    <optgroup label="1. HARTA (ASET)">
-                        <!-- Aset Lancar -->
-                        <optgroup label="&nbsp;&nbsp;&nbsp;Aset Lancar">
-                            <option value="kas" data-kode="1101">Kas/Kas Kecil</option>
-                            <option value="bank" data-kode="1102">Bank</option>
-                            <option value="piutang usaha" data-kode="1103">Piutang Usaha/Dagang</option>
-                            <option value="piutang wesel" data-kode="1104">Piutang Wesel</option>
-                            <option value="piutang karyawan" data-kode="1105">Piutang Karyawan</option>
-                            <option value="persediaan barang" data-kode="1106">Persediaan Barang Dagang</option>
-                            <option value="persediaan bahan" data-kode="1107">Persediaan Bahan Baku/Supplies</option>
-                            <option value="sewa dibayar dimuka" data-kode="1108">Sewa Dibayar di Muka</option>
-                            <option value="asuransi dibayar_dimuka" data-kode="1109">Asuransi Dibayar di Muka</option>
-                            <option value="perlengkapan kantor" data-kode="1110">Perlengkapan Kantor</option>
-                            <option value="biaya dibayar dimuka" data-kode="1111">Biaya Dibayar di Muka</option>
-                            <option value="investasi pendek" data-kode="1112">Investasi Jangka Pendek</option>
-                        </optgroup>
-                        
-                        <!-- Aset Tetap -->
-                        <optgroup label="&nbsp;&nbsp;&nbsp;Aset Tetap">
-                            <option value="tanah" data-kode="1201">Tanah</option>
-                            <option value="gedung" data-kode="1202">Gedung/Bangunan</option>
-                            <option value="kendaraan" data-kode="1203">Kendaraan</option>
-                            <option value="mesin" data-kode="1204">Mesin dan Peralatan</option>
-                            <option value="perabotan" data-kode="1205">Perabotan Kantor</option>
-                            <option value="hak paten" data-kode="1206">Hak Paten</option>
-                            <option value="hak cipta" data-kode="1207">Hak Cipta</option>
-                            <option value="goodwill" data-kode="1208">Goodwill</option>
-                            <option value="merek dagang" data-kode="1209">Merek Dagang</option>
-                        </optgroup>
+                    <optgroup label="1. HARTA (ASET) (11)">
+                    <!-- Aset Lancar -->
+                    <optgroup label="&nbsp;&nbsp;&nbsp;Aset Lancar (1)">
+                        <option value="kas" data-kode="1101">Kas/Kas Kecil (001) - Debit</option>
+                        <option value="bank" data-kode="1102">Bank (002) - Debit</option>
+                        <option value="piutang usaha" data-kode="1103">Piutang Usaha/Dagang (003) - Debit</option>
+                        <option value="piutang wesel" data-kode="1104">Piutang Wesel (004) - Debit</option>
+                        <option value="piutang karyawan" data-kode="1105">Piutang Karyawan (005) - Debit</option>
+                        <option value="piutang lain" data-kode="1106">Piutang Lain-lain (006) - Debit</option>
+                        <option value="persediaan barang" data-kode="1107">Persediaan Barang Dagang (007) - Debit</option>
+                        <option value="persediaan bahan" data-kode="1108">Persediaan Bahan Baku/Supplies (008) - Debit</option>
+                        <option value="sewa dibayar dimuka" data-kode="1109">Sewa Dibayar di Muka (009) - Debit</option>
+                        <option value="asuransi dibayar_dimuka" data-kode="1110">Asuransi Dibayar di Muka (010) - Debit</option>
+                        <option value="perlengkapan kantor" data-kode="1111">Perlengkapan Kantor (011) - Debit</option>
+                        <option value="biaya dibayar dimuka" data-kode="1112">Biaya Dibayar di Muka (012) - Debit</option>
+                        <option value="investasi pendek" data-kode="1113">Investasi Jangka Pendek (013) - Debit</option>
                     </optgroup>
 
-                    <optgroup label="2. UTANG (KEWAJIBAN)">
-                        <!-- Utang Lancar -->
-                        <optgroup label="&nbsp;&nbsp;&nbsp;Utang Lancar">
-                            <option value="utang usaha" data-kode="2101">Utang Usaha/Dagang</option>
-                            <option value="utang wesel" data-kode="2102">Utang Wesel</option>
-                            <option value="utang gaji" data-kode="2103">Utang Gaji</option>
-                            <option value="utang bunga" data-kode="2104">Utang Bunga</option>
-                            <option value="utang pajak" data-kode="2105">Utang Pajak</option>
-                            <option value="utang dividen" data-kode="2106">Utang Dividen</option>
-                        </optgroup>
-                        
-                        <!-- Utang Jangka Panjang -->
-                        <optgroup label="&nbsp;&nbsp;&nbsp;Utang Jangka Panjang">
-                            <option value="utang hipotek" data-kode="2201">Utang Hipotek</option>
-                            <option value="utang obligasi" data-kode="2202">Utang Obligasi</option>
-                            <option value="kredit investasi" data-kode="2203">Kredit Investasi</option>
-                        </optgroup>
+                    <!-- Aset Tetap -->
+                    <optgroup label="&nbsp;&nbsp;&nbsp;Aset Tetap (2)">
+                        <option value="tanah" data-kode="1201">Tanah (001) - Debit</option>
+                        <option value="gedung" data-kode="1202">Gedung/Bangunan (002) - Debit</option>
+                        <option value="kendaraan" data-kode="1203">Kendaraan (003) - Debit</option>
+                        <option value="mesin" data-kode="1204">Mesin dan Peralatan (004) - Debit</option>
+                        <option value="perabotan" data-kode="1205">Perabotan Kantor (005) - Debit</option>
+                        <option value="hak paten" data-kode="1206">Hak Paten (006) - Debit</option>
+                        <option value="hak cipta" data-kode="1207">Hak Cipta (007) - Debit</option>
+                        <option value="goodwill" data-kode="1208">Goodwill (008) - Debit</option>
+                        <option value="merek dagang" data-kode="1209">Merek Dagang (009) - Debit</option>
+                    </optgroup>
+                </optgroup>
+
+                <optgroup label="2. UTANG (KEWAJIBAN) (12)">
+                    <!-- Utang Lancar -->
+                    <optgroup label="&nbsp;&nbsp;&nbsp;Utang Lancar (1)">
+                        <option value="utang usaha" data-kode="2101">Utang Usaha/Dagang (001) - Kredit</option>
+                        <option value="utang wesel" data-kode="2102">Utang Wesel (002) - Kredit</option>
+                        <option value="utang gaji" data-kode="2103">Utang Gaji (003) - Kredit</option>
+                        <option value="utang bunga" data-kode="2104">Utang Bunga (004) - Kredit</option>
+                        <option value="utang pajak" data-kode="2105">Utang Pajak (005) - Kredit</option>
+                        <option value="utang dividen" data-kode="2106">Utang Dividen (006) - Kredit</option>
                     </optgroup>
 
-                    <optgroup label="3. MODAL (EKUITAS)">
-                        <option value="modal pemilik" data-kode="3101">Modal Pemilik/Modal Disetor</option>
-                        <option value="modal saham" data-kode="3102">Modal Saham</option>
-                        <option value="laba ditahan" data-kode="3103">Laba Ditahan</option>
-                        <option value="dividen" data-kode="3104">Dividen</option>
-                        <option value="prive" data-kode="3105">Prive (Pengambilan Pribadi)</option>
+                    <!-- Utang Jangka Panjang -->
+                    <optgroup label="&nbsp;&nbsp;&nbsp;Utang Jangka Panjang (2)">
+                        <option value="utang hipotek" data-kode="2201">Utang Hipotek (001) - Kredit</option>
+                        <option value="utang obligasi" data-kode="2202">Utang Obligasi (002) - Kredit</option>
+                        <option value="kredit investasi" data-kode="2203">Kredit Investasi (003) - Kredit</option>
+                    </optgroup>
+                </optgroup>
+
+                <optgroup label="3. MODAL (EKUITAS) (131)">
+                    <option value="modal pemilik" data-kode="3101">Modal Pemilik/Modal Disetor (001) - Kredit</option>
+                    <option value="modal saham" data-kode="3102">Modal Saham (002) - Kredit</option>
+                    <option value="laba ditahan" data-kode="3103">Laba Ditahan (003) - Kredit</option>
+                    <option value="dividen" data-kode="3104">Dividen (004) - Kredit</option>
+                    <option value="prive" data-kode="3105">Prive (Pengambilan Pribadi) (005) - Kredit</option>
+                </optgroup>
+
+                <optgroup label="4. PENDAPATAN (21)">
+                    <!-- Pendapatan Operasional -->
+                    <optgroup label="&nbsp;&nbsp;&nbsp;Pendapatan Operasional (1)">
+                        <option value="pendapatan penjualan" data-kode="4101">Pendapatan Penjualan (001) - Kredit</option>
+                        <option value="pendapatan jasa" data-kode="4102">Pendapatan Jasa (002) - Kredit</option>
                     </optgroup>
 
-                    <optgroup label="4. PENDAPATAN">
-                        <!-- Pendapatan Operasional -->
-                        <optgroup label="&nbsp;&nbsp;&nbsp;Pendapatan Operasional">
-                            <option value="pendapatan penjualan" data-kode="4101">Pendapatan Penjualan</option>
-                            <option value="pendapatan jasa" data-kode="4102">Pendapatan Jasa</option>
-                        </optgroup>
-                        
-                        <!-- Pendapatan Non-Operasional -->
-                        <optgroup label="&nbsp;&nbsp;&nbsp;Pendapatan Non-Operasional">
-                            <option value="pendapatan bunga" data-kode="4201">Pendapatan Bunga</option>
-                            <option value="pendapatan sewa" data-kode="4202">Pendapatan Sewa</option>
-                            <option value="pendapatan komisi" data-kode="4203">Pendapatan Komisi</option>
-                            <option value="pendapatan lain" data-kode="4204">Pendapatan Lain-lain</option>
-                        </optgroup>
+                    <!-- Pendapatan Non-Operasional -->
+                    <optgroup label="&nbsp;&nbsp;&nbsp;Pendapatan Non-Operasional (2)">
+                        <option value="pendapatan bunga" data-kode="4201">Pendapatan Bunga (001) - Kredit</option>
+                        <option value="pendapatan sewa" data-kode="4202">Pendapatan Sewa (002) - Kredit</option>
+                        <option value="pendapatan komisi" data-kode="4203">Pendapatan Komisi (003) - Kredit</option>
+                        <option value="pendapatan lain" data-kode="4204">Pendapatan Lain-lain (004) - Kredit</option>
+                    </optgroup>
+                </optgroup>
+
+                <optgroup label="5. BEBAN (22)">
+                    <!-- Beban Operasional -->
+                    <optgroup label="&nbsp;&nbsp;&nbsp;Beban Operasional (1)">
+                        <option value="beban gaji" data-kode="5101">Beban Gaji (001) - Debit</option>
+                        <option value="beban sewa" data-kode="5102">Beban Sewa (002) - Debit</option>
+                        <option value="beban utilitas" data-kode="5103">Beban Listrik, Air, dan Telepon (003) - Debit</option>
+                        <option value="beban penyusutan" data-kode="5104">Beban Penyusutan (004) - Debit</option>
+                        <option value="beban supplies" data-kode="5105">Beban Supplies/Perlengkapan (005) - Debit</option>
+                        <option value="beban iklan" data-kode="5106">Beban Iklan/Promosi (006) - Debit</option>
                     </optgroup>
 
-                    <optgroup label="5. BEBAN">
-                        <!-- Beban Operasional -->
-                        <optgroup label="&nbsp;&nbsp;&nbsp;Beban Operasional">
-                            <option value="beban gaji" data-kode="5101">Beban Gaji</option>
-                            <option value="beban sewa" data-kode="5102">Beban Sewa</option>
-                            <option value="beban utilitas" data-kode="5103">Beban Listrik, Air, dan Telepon</option>
-                            <option value="beban penyusutan" data-kode="5104">Beban Penyusutan</option>
-                            <option value="beban supplies" data-kode="5105">Beban Supplies/Perlengkapan</option>
-                            <option value="beban iklan" data-kode="5106">Beban Iklan/Promosi</option>
-                        </optgroup>
-                        
-                        <!-- Beban Non-Operasional -->
-                        <optgroup label="&nbsp;&nbsp;&nbsp;Beban Non-Operasional">
-                            <option value="beban bunga" data-kode="5201">Beban Bunga</option>
-                            <option value="beban lain" data-kode="5202">Beban Lain-lain</option>
-                        </optgroup>
+                    <!-- Beban Non-Operasional -->
+                    <optgroup label="&nbsp;&nbsp;&nbsp;Beban Non-Operasional (2)">
+                        <option value="beban bunga" data-kode="5201">Beban Bunga (001) - Debit</option>
+                        <option value="beban lain" data-kode="5202">Beban Lain-lain (002) - Debit</option>
                     </optgroup>
+                </optgroup>
                 </select>
             </div>
 
