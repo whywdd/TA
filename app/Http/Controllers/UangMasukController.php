@@ -18,27 +18,43 @@ class UangMasukController extends Controller
             // Validasi input
             $validated = $request->validate([
                 'Tanggal' => 'required|date',
-                'kategori' => 'required|string',
+                'kategori' => 'required|array',
+                'kategori.*' => 'required|string',
                 'keterangan' => 'required|string',
-                'uang_masuk' => 'required|string',
+                'nominal' => 'required|array',
+                'nominal.*' => 'required|string',
+                'posisi' => 'required|array',
+                'posisi.*' => 'required|in:debit,kredit',
             ]);
 
-            // Bersihkan format angka dari input uang_masuk
-            $uang_masuk = str_replace(['.', ','], '', $request->uang_masuk);
-
-            // Tentukan kode berdasarkan kategori
-            $kode = $this->generateKode($validated['kategori']);
-
-            // Simpan data dengan nilai null untuk uang_keluar dan gaji
-            UangMasukModel::create([
+            // Inisialisasi data untuk disimpan
+            $data = [
                 'Tanggal' => $validated['Tanggal'],
-                'kode' => $kode,
-                'kategori' => $validated['kategori'],
                 'keterangan' => $validated['keterangan'],
-                'uang_masuk' => $uang_masuk,
-                'uang_keluar' => null, // Mengizinkan null
-                'gaji' => null, // Mengizinkan null
-            ]);
+            ];
+
+            // Proses setiap rekening
+            foreach ($validated['kategori'] as $index => $kategori) {
+                $kode = $this->generateKode($kategori);
+                $nominal = str_replace(['.', ','], '', $validated['nominal'][$index]);
+                
+                // Set kode dan kategori sesuai urutan
+                $positionIndex = $index === 0 ? '' : ($index + 1);
+                $data["kode" . $positionIndex] = $kode;
+                $data["kategori" . $positionIndex] = $kategori;
+
+                // Set uang_masuk atau uang_keluar berdasarkan posisi
+                if ($validated['posisi'][$index] === 'debit') {
+                    $data["uang_masuk" . $positionIndex] = $nominal;
+                    $data["uang_keluar" . $positionIndex] = null;
+                } else {
+                    $data["uang_masuk" . $positionIndex] = null;
+                    $data["uang_keluar" . $positionIndex] = $nominal;
+                }
+            }
+
+            // Simpan data
+            UangMasukModel::create($data);
 
             return redirect()->back()->with('success', 'Data berhasil disimpan!');
         } catch (\Exception $e) {
@@ -48,67 +64,182 @@ class UangMasukController extends Controller
 
     private function generateKode($kategori)
     {
-        // Tentukan kode dasar berdasarkan kategori
-        $kodeDasar = 0;
+        // Ambil data-kode dari kategori yang dipilih
+        $kodeAkun = '';
         
-        // Ekstrak prefix kode dari value kategori
-        $kategoriPrefix = explode('_', $kategori)[0];
-        
-        switch ($kategoriPrefix) {
-            // Harta (Aset)
+        switch ($kategori) {
+            // Aset Lancar (11)
             case 'kas':
+                $kodeAkun = '111001';
+                break;
             case 'bank':
-            case 'piutang':
-            case 'persediaan':
-            case 'sewa':
-            case 'asuransi':
-            case 'perlengkapan':
-            case 'biaya':
-            case 'investasi':
+                $kodeAkun = '111002';
+                break;
+            case 'piutang usaha':
+                $kodeAkun = '111003';
+                break;
+            case 'piutang wesel':
+                $kodeAkun = '111004';
+                break;
+            case 'piutang karyawan':
+                $kodeAkun = '111005';
+                break;
+            case 'piutang lain':
+                $kodeAkun = '111006';
+                break;
+            case 'persediaan barang':
+                $kodeAkun = '111007';
+                break;
+            case 'persediaan bahan':
+                $kodeAkun = '111008';
+                break;
+            case 'sewa dibayar dimuka':
+                $kodeAkun = '111009';
+                break;
+            case 'asuransi dibayar_dimuka':
+                $kodeAkun = '111010';
+                break;
+            case 'perlengkapan kantor':
+                $kodeAkun = '111011';
+                break;
+            case 'biaya dibayar dimuka':
+                $kodeAkun = '111012';
+                break;
+            case 'investasi pendek':
+                $kodeAkun = '111013';
+                break;
+    
+            // Aset Tetap (12)
             case 'tanah':
+                $kodeAkun = '112001';
+                break;
             case 'gedung':
+                $kodeAkun = '112002';
+                break;
             case 'kendaraan':
+                $kodeAkun = '112003';
+                break;
             case 'mesin':
+                $kodeAkun = '112004';
+                break;
             case 'perabotan':
-            case 'hak':
+                $kodeAkun = '112005';
+                break;
+            case 'hak paten':
+                $kodeAkun = '112006';
+                break;
+            case 'hak cipta':
+                $kodeAkun = '112007';
+                break;
             case 'goodwill':
-            case 'merek':
-                $kodeDasar = 1;
+                $kodeAkun = '112008';
                 break;
-            
-            // Utang (Kewajiban)
-            case 'utang':
-            case 'kredit':
-                $kodeDasar = 2;
+            case 'merek dagang':
+                $kodeAkun = '112009';
                 break;
-            
-            // Modal (Ekuitas)
-            case 'modal':
-            case 'laba':
+    
+            // Utang Lancar (21)
+            case 'utang usaha':
+                $kodeAkun = '121001';
+                break;
+            case 'utang wesel':
+                $kodeAkun = '121002';
+                break;
+            case 'utang gaji':
+                $kodeAkun = '121003';
+                break;
+            case 'utang bunga':
+                $kodeAkun = '121004';
+                break;
+            case 'utang pajak':
+                $kodeAkun = '121005';
+                break;
+            case 'utang dividen':
+                $kodeAkun = '121006';
+                break;
+    
+            // Utang Jangka Panjang (22)
+            case 'utang hipotek':
+                $kodeAkun = '122001';
+                break;
+            case 'utang obligasi':
+                $kodeAkun = '122002';
+                break;
+            case 'kredit investasi':
+                $kodeAkun = '122003';
+                break;
+    
+            // Modal (Ekuitas) (31)
+            case 'modal pemilik':
+                $kodeAkun = '131001';
+                break;
+            case 'modal saham':
+                $kodeAkun = '131002';
+                break;
+            case 'laba ditahan':
+                $kodeAkun = '131003';
+                break;
             case 'dividen':
+                $kodeAkun = '131004';
+                break;
             case 'prive':
-                $kodeDasar = 3;
+                $kodeAkun = '131005';
                 break;
-            
-            // Pendapatan
-            case 'pendapatan':
-                $kodeDasar = 4;
+    
+            // Pendapatan Operasional (41)
+            case 'pendapatan penjualan':
+                $kodeAkun = '241001';
                 break;
-            
-            // Beban
-            case 'beban':
-                $kodeDasar = 5;
+            case 'pendapatan jasa':
+                $kodeAkun = '241002';
                 break;
-            
+    
+            // Pendapatan Non-Operasional (42)
+            case 'pendapatan bunga':
+                $kodeAkun = '242001';
+                break;
+            case 'pendapatan sewa':
+                $kodeAkun = '242002';
+                break;
+            case 'pendapatan komisi':
+                $kodeAkun = '242003';
+                break;
+            case 'pendapatan lain':
+                $kodeAkun = '242004';
+                break;
+    
+            // Beban Operasional (51)
+            case 'beban gaji':
+                $kodeAkun = '251001';
+                break;
+            case 'beban sewa':
+                $kodeAkun = '251002';
+                break;
+            case 'beban utilitas':
+                $kodeAkun = '251003';
+                break;
+            case 'beban penyusutan':
+                $kodeAkun = '251004';
+                break;
+            case 'beban supplies':
+                $kodeAkun = '251005';
+                break;
+            case 'beban iklan':
+                $kodeAkun = '251006';
+                break;
+    
+            // Beban Non-Operasional (52)
+            case 'beban bunga':
+                $kodeAkun = '252001';
+                break;
+            case 'beban lain':
+                $kodeAkun = '252002';
+                break;
+    
             default:
-                $kodeDasar = 0; // Kode default jika kategori tidak dikenali
+                $kodeAkun = '0000';
         }
-
-        // Ambil jumlah transaksi dengan kode dasar yang sama
-        $lastTransaction = UangMasukModel::where('kode', 'like', $kodeDasar . '%')->orderBy('id', 'desc')->first();
-        $nextNumber = $lastTransaction ? intval(substr($lastTransaction->kode, 1)) + 1 : 1;
-
-        // Gabungkan kode dasar dengan nomor urut
-        return $kodeDasar . str_pad($nextNumber, 2, '0', STR_PAD_LEFT);
+    
+        return $kodeAkun;
     }
 }

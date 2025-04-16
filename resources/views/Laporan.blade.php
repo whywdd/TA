@@ -99,13 +99,11 @@
                     <thead>
                         <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
                             <th class="py-3 px-4 text-left">No</th>
-                            <!-- <th class="py-3 px-4 text-left">Tanggal</th> -->
                             <th class="py-3 px-4 text-left">Kode Akun</th>
                             <th class="py-3 px-4 text-left">Nama Akun</th>
                             <th class="py-3 px-4 text-left">Keterangan</th>
                             <th class="py-3 px-4 text-right">Debit</th>
                             <th class="py-3 px-4 text-right">Kredit</th>
-                            <th class="py-3 px-4 text-right">Saldo</th>
                             <th class="py-3 px-4 text-center">Aksi</th>
                         </tr>
                     </thead>
@@ -113,21 +111,50 @@
                         <!-- Looping data dari database -->
                         @php 
                             $no = 1; 
-                            $runningSaldo = 0;
                         @endphp
                         
                         @foreach($laporan as $item)
                             @php
                                 $debit = $item->uang_masuk;
                                 $kredit = $item->uang_keluar + $item->gaji;
-                                $runningSaldo += $debit - $kredit;
                             @endphp
                             <tr class="border-b border-gray-200 hover:bg-gray-50">
                                 <td class="py-3 px-4">{{ $no++ }}</td>
-                                <!-- <td class="py-3 px-4">{{ $item->Tanggal->format('Y-m-d') }}</td> -->
-                                <td class="py-3 px-4">{{ $item->kode }}</td>
-                                <td class="py-3 px-4">{{ $item->kategori }}</td>
-                                <td class="py-3 px-4">{{ $item->keterangan }}  {{ $item->nama_karyawan }}</td>
+                                <td class="py-3 px-4">
+                                    <div class="flex flex-col">
+                                        <span>{{ $item->kode }}</span>
+                                        @if(isset($item->kode2))
+                                            <span class="text-sm text-gray-500">{{ $item->kode2 }}</span>
+                                        @endif
+                                        @if(isset($item->kode3))
+                                            <span class="text-sm text-gray-500">{{ $item->kode3 }}</span>
+                                        @endif
+                                        @if(isset($item->kode4))
+                                            <span class="text-sm text-gray-500">{{ $item->kode4 }}</span>
+                                        @endif
+                                        @if(isset($item->kode5))
+                                            <span class="text-sm text-gray-500">{{ $item->kode5 }}</span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <div class="flex flex-col">
+                                        <span>{{ $item->kategori }}</span>
+                                        @if(isset($item->kategori2))
+                                            <span class="text-sm text-gray-500">{{ $item->kategori2 }}</span>
+                                        @endif
+                                        @if(isset($item->kategori3))
+                                            <span class="text-sm text-gray-500">{{ $item->kategori3 }}</span>
+                                        @endif
+                                        @if(isset($item->kategori4))
+                                            <span class="text-sm text-gray-500">{{ $item->kategori4 }}</span>
+                                        @endif
+                                        @if(isset($item->kategori5))
+                                            <span class="text-sm text-gray-500">{{ $item->kategori5 }}</span>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">{{ $item->keterangan }} {{ $item->nama_karyawan }}</td>
                                 <td class="py-3 px-4 text-right text-green-600">
                                     @if($debit > 0)
                                         Rp {{ number_format($debit, 0, ',', '.') }}
@@ -142,7 +169,6 @@
                                         -
                                     @endif
                                 </td>
-                                <td class="py-3 px-4 text-right font-medium">Rp {{ number_format($runningSaldo, 0, ',', '.') }}</td>
                                 <td class="py-3 px-4 text-center">
                                     <div class="flex justify-center space-x-2">
                                         <button class="text-blue-600 hover:text-blue-800" title="Edit">
@@ -158,10 +184,9 @@
                     </tbody>
                     <tfoot>
                         <tr class="bg-gray-50 font-bold">
-                            <td colspan="5" class="py-3 px-4 text-right">Total:</td>
+                            <td colspan="4" class="py-3 px-4 text-right">Total:</td>
                             <td class="py-3 px-4 text-right text-green-600">Rp {{ number_format($totalUangMasuk, 0, ',', '.') }}</td>
                             <td class="py-3 px-4 text-right text-red-600">Rp {{ number_format($totalKredit, 0, ',', '.') }}</td>
-                            <td class="py-3 px-4 text-right">Rp {{ number_format($saldo, 0, ',', '.') }}</td>
                             <td></td>
                         </tr>
                     </tfoot>
