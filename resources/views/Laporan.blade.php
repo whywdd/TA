@@ -99,6 +99,7 @@
                     <thead>
                         <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
                             <th class="py-3 px-4 text-left">No</th>
+                            <th class="py-3 px-4 text-left">Tanggal</th>
                             <th class="py-3 px-4 text-left">Kode Akun</th>
                             <th class="py-3 px-4 text-left">Nama Akun</th>
                             <th class="py-3 px-4 text-left">Keterangan</th>
@@ -108,18 +109,78 @@
                         </tr>
                     </thead>
                     <tbody id="tableBody">
-                        <!-- Looping data dari database -->
                         @php 
-                            $no = 1; 
+                            $no = 1;
+                            $totalDebitTable = 0;
+                            $totalKreditTable = 0;
                         @endphp
                         
                         @foreach($laporan as $item)
                             @php
-                                $debit = $item->uang_masuk;
-                                $kredit = $item->uang_keluar + $item->gaji;
+                                // Cek apakah semua nilai adalah debit
+                                $allDebit = true;
+                                $debitValues = [
+                                    $item->uang_masuk,
+                                    $item->uang_masuk2,
+                                    $item->uang_masuk3,
+                                    $item->uang_masuk4,
+                                    $item->uang_masuk5
+                                ];
+                                
+                                // Hitung total debit yang valid (tidak null dan lebih dari 0)
+                                $validDebitValues = array_filter($debitValues, function($value) {
+                                    return $value !== null && $value > 0;
+                                });
+                                
+                                // Jika ada nilai di uang_keluar, berarti bukan semua debit
+                                if ($item->uang_keluar > 0 || 
+                                    ($item->uang_keluar2 ?? 0) > 0 || 
+                                    ($item->uang_keluar3 ?? 0) > 0 || 
+                                    ($item->uang_keluar4 ?? 0) > 0 || 
+                                    ($item->uang_keluar5 ?? 0) > 0) {
+                                    $allDebit = false;
+                                }
+                                
+                                // Hitung total untuk baris ini
+                                $rowDebit = 0;
+                                $rowKredit = 0;
+                                
+                                if ($allDebit) {
+                                    // Jika semua debit, ambil nilai terakhir untuk kredit
+                                    $lastDebitValue = end($validDebitValues);
+                                    $firstDebitValue = reset($validDebitValues);
+                                    
+                                    if (count($validDebitValues) > 1) {
+                                        // Jika ada lebih dari satu nilai debit
+                                        $rowDebit = $firstDebitValue;
+                                        $rowKredit = $lastDebitValue;
+                                    } else {
+                                        // Jika hanya ada satu nilai debit
+                                        $rowDebit = $firstDebitValue;
+                                        $rowKredit = $firstDebitValue;
+                                    }
+                                } else {
+                                    // Jika ada kredit, hitung normal
+                                    $rowDebit = $item->uang_masuk + 
+                                              ($item->uang_masuk2 ?? 0) + 
+                                              ($item->uang_masuk3 ?? 0) + 
+                                              ($item->uang_masuk4 ?? 0) + 
+                                              ($item->uang_masuk5 ?? 0);
+                                              
+                                    $rowKredit = $item->uang_keluar + 
+                                               ($item->uang_keluar2 ?? 0) + 
+                                               ($item->uang_keluar3 ?? 0) + 
+                                               ($item->uang_keluar4 ?? 0) + 
+                                               ($item->uang_keluar5 ?? 0);
+                                }
+                                
+                                // Update total untuk tabel
+                                $totalDebitTable += $rowDebit;
+                                $totalKreditTable += $rowKredit;
                             @endphp
                             <tr class="border-b border-gray-200 hover:bg-gray-50">
                                 <td class="py-3 px-4">{{ $no++ }}</td>
+                                <td class="py-3 px-4">{{ date('d/m/Y', strtotime($item->Tanggal)) }}</td>
                                 <td class="py-3 px-4">
                                     <div class="flex flex-col">
                                         <span>{{ $item->kode }}</span>
@@ -156,18 +217,78 @@
                                 </td>
                                 <td class="py-3 px-4">{{ $item->keterangan }} {{ $item->nama_karyawan }}</td>
                                 <td class="py-3 px-4 text-right text-green-600">
-                                    @if($debit > 0)
-                                        Rp {{ number_format($debit, 0, ',', '.') }}
-                                    @else
-                                        -
-                                    @endif
+                                    <div class="flex flex-col">
+                                        @if($item->uang_masuk > 0)
+                                            <span>Rp {{ number_format($item->uang_masuk, 0, ',', '.') }}</span>
+                                        @else
+                                            <span>-</span>
+                                        @endif
+                                        @if($allDebit)
+                                            {{-- Jika semua debit, tampilkan semua kecuali yang terakhir --}}
+                                            @if(isset($item->kategori2) && isset($item->uang_masuk2) && $item->uang_masuk2 > 0 && count($validDebitValues) > 2)
+                                                <span class="text-sm">Rp {{ number_format($item->uang_masuk2, 0, ',', '.') }}</span>
+                                            @endif
+                                            @if(isset($item->kategori3) && isset($item->uang_masuk3) && $item->uang_masuk3 > 0 && count($validDebitValues) > 3)
+                                                <span class="text-sm">Rp {{ number_format($item->uang_masuk3, 0, ',', '.') }}</span>
+                                            @endif
+                                            @if(isset($item->kategori4) && isset($item->uang_masuk4) && $item->uang_masuk4 > 0 && count($validDebitValues) > 4)
+                                                <span class="text-sm">Rp {{ number_format($item->uang_masuk4, 0, ',', '.') }}</span>
+                                            @endif
+                                        @else
+                                            {{-- Tampilkan normal jika ada kredit --}}
+                                            @if(isset($item->kategori2) && isset($item->uang_masuk2) && $item->uang_masuk2 > 0)
+                                                <span class="text-sm">Rp {{ number_format($item->uang_masuk2, 0, ',', '.') }}</span>
+                                            @endif
+                                            @if(isset($item->kategori3) && isset($item->uang_masuk3) && $item->uang_masuk3 > 0)
+                                                <span class="text-sm">Rp {{ number_format($item->uang_masuk3, 0, ',', '.') }}</span>
+                                            @endif
+                                            @if(isset($item->kategori4) && isset($item->uang_masuk4) && $item->uang_masuk4 > 0)
+                                                <span class="text-sm">Rp {{ number_format($item->uang_masuk4, 0, ',', '.') }}</span>
+                                            @endif
+                                            @if(isset($item->kategori5) && isset($item->uang_masuk5) && $item->uang_masuk5 > 0)
+                                                <span class="text-sm">Rp {{ number_format($item->uang_masuk5, 0, ',', '.') }}</span>
+                                            @endif
+                                        @endif
+                                    </div>
                                 </td>
                                 <td class="py-3 px-4 text-right text-red-600">
-                                    @if($kredit > 0)
-                                        Rp {{ number_format($kredit, 0, ',', '.') }}
-                                    @else
-                                        -
-                                    @endif
+                                    <div class="flex flex-col">
+                                        @if($allDebit)
+                                            {{-- Jika semua debit, tampilkan nilai terakhir di kredit --}}
+                                            @if(count($validDebitValues) > 1)
+                                                @if(isset($item->uang_masuk5) && $item->uang_masuk5 > 0)
+                                                    <span>Rp {{ number_format($item->uang_masuk5, 0, ',', '.') }}</span>
+                                                @elseif(isset($item->uang_masuk4) && $item->uang_masuk4 > 0)
+                                                    <span>Rp {{ number_format($item->uang_masuk4, 0, ',', '.') }}</span>
+                                                @elseif(isset($item->uang_masuk3) && $item->uang_masuk3 > 0)
+                                                    <span>Rp {{ number_format($item->uang_masuk3, 0, ',', '.') }}</span>
+                                                @elseif(isset($item->uang_masuk2) && $item->uang_masuk2 > 0)
+                                                    <span>Rp {{ number_format($item->uang_masuk2, 0, ',', '.') }}</span>
+                                                @endif
+                                            @else
+                                                <span>-</span>
+                                            @endif
+                                        @else
+                                            {{-- Tampilkan normal jika ada kredit --}}
+                                            @if($item->uang_keluar > 0)
+                                                <span>Rp {{ number_format($item->uang_keluar, 0, ',', '.') }}</span>
+                                            @else
+                                                <span>-</span>
+                                            @endif
+                                            @if(isset($item->kategori2) && isset($item->uang_keluar2) && $item->uang_keluar2 > 0)
+                                                <span class="text-sm">Rp {{ number_format($item->uang_keluar2, 0, ',', '.') }}</span>
+                                            @endif
+                                            @if(isset($item->kategori3) && isset($item->uang_keluar3) && $item->uang_keluar3 > 0)
+                                                <span class="text-sm">Rp {{ number_format($item->uang_keluar3, 0, ',', '.') }}</span>
+                                            @endif
+                                            @if(isset($item->kategori4) && isset($item->uang_keluar4) && $item->uang_keluar4 > 0)
+                                                <span class="text-sm">Rp {{ number_format($item->uang_keluar4, 0, ',', '.') }}</span>
+                                            @endif
+                                            @if(isset($item->kategori5) && isset($item->uang_keluar5) && $item->uang_keluar5 > 0)
+                                                <span class="text-sm">Rp {{ number_format($item->uang_keluar5, 0, ',', '.') }}</span>
+                                            @endif
+                                        @endif
+                                    </div>
                                 </td>
                                 <td class="py-3 px-4 text-center">
                                     <div class="flex justify-center space-x-2">
@@ -184,9 +305,9 @@
                     </tbody>
                     <tfoot>
                         <tr class="bg-gray-50 font-bold">
-                            <td colspan="4" class="py-3 px-4 text-right">Total:</td>
-                            <td class="py-3 px-4 text-right text-green-600">Rp {{ number_format($totalUangMasuk, 0, ',', '.') }}</td>
-                            <td class="py-3 px-4 text-right text-red-600">Rp {{ number_format($totalKredit, 0, ',', '.') }}</td>
+                            <td colspan="5" class="py-3 px-4 text-right">Total:</td>
+                            <td class="py-3 px-4 text-right text-green-600">Rp {{ number_format($totalDebitTable, 0, ',', '.') }}</td>
+                            <td class="py-3 px-4 text-right text-red-600">Rp {{ number_format($totalKreditTable, 0, ',', '.') }}</td>
                             <td></td>
                         </tr>
                     </tfoot>
