@@ -15,13 +15,28 @@ class LaporanController extends Controller
     public function index()
     {
         $laporan = LaporanModel::orderBy('Tanggal', 'desc')->get();
-        $totalUangMasuk = LaporanModel::sum('uang_masuk');
-        $totalUangKeluar = LaporanModel::sum('uang_keluar');
-        $totalGaji = LaporanModel::sum('gaji');
-        $totalKredit = $totalUangKeluar + $totalGaji;
+        
+        // Hitung total uang masuk (termasuk uang_masuk2-5)
+        $totalUangMasuk = LaporanModel::selectRaw('SUM(uang_masuk) + 
+            COALESCE(SUM(uang_masuk2), 0) + 
+            COALESCE(SUM(uang_masuk3), 0) + 
+            COALESCE(SUM(uang_masuk4), 0) + 
+            COALESCE(SUM(uang_masuk5), 0) as total')
+            ->value('total') ?? 0;
+    
+        // Hitung total uang keluar (termasuk uang_keluar2-5)
+        $totalUangKeluar = LaporanModel::selectRaw('SUM(uang_keluar) + 
+            COALESCE(SUM(uang_keluar2), 0) + 
+            COALESCE(SUM(uang_keluar3), 0) + 
+            COALESCE(SUM(uang_keluar4), 0) + 
+            COALESCE(SUM(uang_keluar5), 0) as total')
+            ->value('total') ?? 0;
+    
+        // Tidak ada lagi kolom gaji, jadi kita menghilangkannya
+        $totalKredit = $totalUangKeluar; // Hanya menggunakan total uang keluar
         $saldo = $totalUangMasuk - $totalKredit;
         
-        return view('Laporan', compact('laporan', 'totalUangMasuk', 'totalUangKeluar', 'totalGaji', 'totalKredit', 'saldo'));
+        return view('Laporan', compact('laporan', 'totalUangMasuk', 'totalUangKeluar', 'totalKredit', 'saldo'));
     }
 
     public function exportExcel()
@@ -39,24 +54,38 @@ class LaporanController extends Controller
                     return [
                         'ID',
                         'Tanggal',
+                        'Kode',
+                        'Kategori',
                         'Keterangan',
-                        'Nama Karyawan',
                         'Uang Masuk',
-                        'Uang Keluar',
-                        'Gaji',
+                        'Uang Keluar'
                     ];
                 }
 
                 public function map($laporan): array
                 {
+                    // Hitung total uang masuk untuk baris ini
+                    $totalUangMasuk = $laporan->uang_masuk +
+                        ($laporan->uang_masuk2 ?? 0) +
+                        ($laporan->uang_masuk3 ?? 0) +
+                        ($laporan->uang_masuk4 ?? 0) +
+                        ($laporan->uang_masuk5 ?? 0);
+
+                    // Hitung total uang keluar untuk baris ini
+                    $totalUangKeluar = $laporan->uang_keluar +
+                        ($laporan->uang_keluar2 ?? 0) +
+                        ($laporan->uang_keluar3 ?? 0) +
+                        ($laporan->uang_keluar4 ?? 0) +
+                        ($laporan->uang_keluar5 ?? 0);
+
                     return [
                         $laporan->id,
                         $laporan->Tanggal,
+                        $laporan->kode,
+                        $laporan->kategori,
                         $laporan->keterangan,
-                        $laporan->nama_karyawan,
-                        $laporan->uang_masuk,
-                        $laporan->uang_keluar,
-                        $laporan->gaji,
+                        $totalUangMasuk,
+                        $totalUangKeluar
                     ];
                 }
             };
@@ -71,13 +100,26 @@ class LaporanController extends Controller
     {
         try {
             $laporan = LaporanModel::orderBy('Tanggal', 'desc')->get();
-            $totalUangMasuk = LaporanModel::sum('uang_masuk');
-            $totalUangKeluar = LaporanModel::sum('uang_keluar');
-            $totalGaji = LaporanModel::sum('gaji');
-            $totalKredit = $totalUangKeluar + $totalGaji;
+            
+            // Hitung total uang masuk
+            $totalUangMasuk = LaporanModel::selectRaw('SUM(uang_masuk) + 
+                COALESCE(SUM(uang_masuk2), 0) + 
+                COALESCE(SUM(uang_masuk3), 0) + 
+                COALESCE(SUM(uang_masuk4), 0) + 
+                COALESCE(SUM(uang_masuk5), 0) as total')
+                ->value('total') ?? 0;
+
+            // Hitung total uang keluar
+            $totalKredit = LaporanModel::selectRaw('SUM(uang_keluar) + 
+                COALESCE(SUM(uang_keluar2), 0) + 
+                COALESCE(SUM(uang_keluar3), 0) + 
+                COALESCE(SUM(uang_keluar4), 0) + 
+                COALESCE(SUM(uang_keluar5), 0) as total')
+                ->value('total') ?? 0;
+
             $saldo = $totalUangMasuk - $totalKredit;
             
-            // Generate PDF langsung menggunakan HTML inline
+            // Generate PDF
             $html = '
             <!DOCTYPE html>
             <html>
@@ -120,25 +162,39 @@ class LaporanController extends Controller
                         <tr>
                             <th>No</th>
                             <th>Tanggal</th>
+                            <th>Kode</th>
+                            <th>Kategori</th>
                             <th>Keterangan</th>
-                            <th>Nama Karyawan</th>
                             <th>Uang Masuk</th>
                             <th>Uang Keluar</th>
-                            <th>Gaji</th>
                         </tr>
                     </thead>
                     <tbody>';
                     
                     foreach($laporan as $index => $item) {
+                        // Hitung total uang masuk untuk baris ini
+                        $rowUangMasuk = $item->uang_masuk +
+                            ($item->uang_masuk2 ?? 0) +
+                            ($item->uang_masuk3 ?? 0) +
+                            ($item->uang_masuk4 ?? 0) +
+                            ($item->uang_masuk5 ?? 0);
+
+                        // Hitung total uang keluar untuk baris ini
+                        $rowUangKeluar = $item->uang_keluar +
+                            ($item->uang_keluar2 ?? 0) +
+                            ($item->uang_keluar3 ?? 0) +
+                            ($item->uang_keluar4 ?? 0) +
+                            ($item->uang_keluar5 ?? 0);
+
                         $html .= '
                         <tr>
                             <td>'.($index + 1).'</td>
                             <td>'.$item->Tanggal.'</td>
+                            <td>'.$item->kode.'</td>
+                            <td>'.$item->kategori.'</td>
                             <td>'.$item->keterangan.'</td>
-                            <td>'.$item->nama_karyawan.'</td>
-                            <td>Rp '.number_format($item->uang_masuk, 0, ',', '.').'</td>
-                            <td>Rp '.number_format($item->uang_keluar, 0, ',', '.').'</td>
-                            <td>Rp '.number_format($item->gaji, 0, ',', '.').'</td>
+                            <td>Rp '.number_format($rowUangMasuk, 0, ',', '.').'</td>
+                            <td>Rp '.number_format($rowUangKeluar, 0, ',', '.').'</td>
                         </tr>';
                     }
                     
@@ -155,14 +211,6 @@ class LaporanController extends Controller
                         </tr>
                         <tr>
                             <td><strong>Total Uang Keluar</strong></td>
-                            <td>Rp '.number_format($totalUangKeluar, 0, ',', '.').'</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Total Gaji</strong></td>
-                            <td>Rp '.number_format($totalGaji, 0, ',', '.').'</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Total Kredit</strong></td>
                             <td>Rp '.number_format($totalKredit, 0, ',', '.').'</td>
                         </tr>
                         <tr>
