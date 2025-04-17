@@ -14,6 +14,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\RekeningController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -60,4 +61,10 @@ Route::middleware(['auth'])->group(function () {
     // Routes untuk manajemen user
     Route::get('/users/data', [UserController::class, 'getData']);
     Route::post('/users/create', [UserController::class, 'create']);
+
+    // Routes untuk Rekening
+    Route::get('/rekening', [RekeningController::class, 'index'])->name('rekening.index');
+    Route::delete('/rekening/{id}', [RekeningController::class, 'destroy'])->name('rekening.destroy');
+    Route::get('/rekening/export-excel', [RekeningController::class, 'exportExcel'])->name('rekening.export-excel');
+    Route::get('/rekening/export-pdf', [RekeningController::class, 'exportPDF'])->name('rekening.export-pdf');
 });
