@@ -18,11 +18,11 @@
         <div class="intro-y">
             <!-- Header -->
             <div class="mb-4 bg-blue-600 text-white p-4 rounded-lg shadow-md">
-                <h1 class="text-2xl font-bold">Laporan Keuangan</h1>
-                <p class="text-sm mt-1">Halaman ini menampilkan semua laporan keuangan.</p>
+                <h1 class="text-2xl font-bold">Jurnal Umum</h1>
+                <p class="text-sm mt-1">Halaman ini menampilkan jurnal umum.</p>
             </div>
 
-            <!-- Summary Cards -->
+            <!-- Summary Cards
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                 <div class="bg-white p-4 rounded-lg shadow">
                     <h3 class="text-gray-500 text-sm">Total Pendapatan</h3>
@@ -51,7 +51,7 @@
                     <p class="text-2xl font-bold text-gray-700">Rp {{ number_format(($saldo < 0) ? $saldo : 0, 0, ',', '.') }}</p>
                     <p class="text-sm text-gray-400">Data realtime keuangan</p>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Enhanced Filter Section -->
             <div class="flex flex-wrap gap-4 px-6 py-4 border-b border-gray-200">

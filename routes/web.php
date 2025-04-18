@@ -16,6 +16,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RekeningController;
 use App\Http\Controllers\NeracasaldoController;
+use App\Http\Controllers\LabarugiController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -69,4 +70,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/rekening/export-excel', [RekeningController::class, 'exportExcel'])->name('rekening.export-excel');
     Route::get('/rekening/export-pdf', [RekeningController::class, 'exportPDF'])->name('rekening.export-pdf');
     Route::resource('neracasaldo', NeracasaldoController::class);
+    Route::get('/laporan-laba-rugi', [LabarugiController::class, 'index'])->name('labarugi.index');
 });

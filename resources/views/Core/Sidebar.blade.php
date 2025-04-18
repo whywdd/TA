@@ -141,11 +141,31 @@
                     <span>Data Karyawan</span>
                 </a>
             </li>
-            <li class="mb-4">
-                <a href="{{ route('Laporan.index') }}" class="nav-link flex items-center p-2 rounded-lg hover:bg-blue-700 transition-colors">
-                    <i class="fas fa-file-alt mr-3"></i>
-                    <span>Laporan</span>
-                </a>
+            <li class="mb-4 relative group">
+                <button class="nav-link w-full flex items-center justify-between p-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <div class="flex items-center">
+                        <i class="fas fa-file-alt mr-3"></i>
+                        <span>Laporan</span>
+                    </div>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <ul class="dropdown-menu hidden absolute left-0 mt-2 w-full bg-blue-600 rounded-lg shadow-lg">
+                    <li>
+                        <a href="{{ route('Laporan.index') }}" class="block px-4 py-2 text-white hover:bg-blue-700">
+                            Jurnal Umum
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('rekening.index') }}" class="block px-4 py-2 text-white hover:bg-blue-700">
+                            Rekening
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('neracasaldo.index') }}" class="block px-4 py-2 text-white hover:bg-blue-700">
+                            Neraca Saldo
+                        </a>
+                    </li>
+                </ul>
             </li>
             <li class="mb-4">
                 <a href="{{ route('User.index') }}" class="nav-link flex items-center p-2 rounded-lg hover:bg-blue-700 transition-colors">
@@ -167,11 +187,31 @@
                     <span>Uang Keluar</span>
                 </a>
             </li> -->
-            <li class="mb-4">
-                <a href="{{ route('Laporan.index') }}" class="nav-link flex items-center p-2 rounded-lg hover:bg-blue-700 transition-colors">
-                    <i class="fas fa-file-alt mr-3"></i>
-                    <span>Laporan</span>
-                </a>
+            <li class="mb-4 relative group">
+                <button class="nav-link w-full flex items-center justify-between p-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <div class="flex items-center">
+                        <i class="fas fa-file-alt mr-3"></i>
+                        <span>Laporan</span>
+                    </div>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <ul class="dropdown-menu hidden absolute left-0 mt-2 w-full bg-blue-600 rounded-lg shadow-lg">
+                    <li>
+                        <a href="{{ route('Laporan.index') }}" class="block px-4 py-2 text-white hover:bg-blue-700">
+                            Jurnal Umum
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('rekening.index') }}" class="block px-4 py-2 text-white hover:bg-blue-700">
+                            Rekening
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('neracasaldo.index') }}" class="block px-4 py-2 text-white hover:bg-blue-700">
+                            Neraca Saldo
+                        </a>
+                    </li>
+                </ul>
             </li>
             <li class="mb-4">
                 <a href="{{ route('User.index') }}" class="nav-link flex items-center p-2 rounded-lg hover:bg-blue-700 transition-colors">
@@ -270,6 +310,24 @@
             if (link.getAttribute('href') === currentPath) {
                 link.classList.add('active');
             }
+        });
+
+        // Dropdown menu functionality
+        document.querySelectorAll('.group').forEach(dropdown => {
+            const button = dropdown.querySelector('button');
+            const menu = dropdown.querySelector('.dropdown-menu');
+            
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                menu.classList.toggle('hidden');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!dropdown.contains(e.target)) {
+                    menu.classList.add('hidden');
+                }
+            });
         });
 
         // Close mobile menu when clicking outside

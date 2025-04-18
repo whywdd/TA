@@ -68,4 +68,38 @@
             </div>
         </div>
     </div>
+    <div class="intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center py-5 px-4 bg-white rounded-md shadow-md">
+            <!-- Filter Rows per Page -->
+            <div class="flex items-center space-x-2 flex-grow">
+                <label for="rowsPerPage" class="text-sm font-medium">Rows per page:</label>
+                <select id="rowsPerPage" class="border rounded-md py-3 px-6 ml-1 text-sm focus:outline-none focus:ring focus:border-blue-300">
+                    <option value="5" selected>5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="all">All</option>
+                </select>
+            </div>
+
+            <!-- Pagination Controls -->
+            <div class="flex items-center space-x-4 ml-2">
+                <button id="prevPage" class="text-sm px-3 py-2 border rounded-md bg-gray-100 hover:bg-gray-200 focus:outline-none">Previous</button>
+                <span id="pageIndicator" class="text-sm font-medium">Page 1</span>
+                <button id="nextPage" class="text-sm px-3 py-2 border rounded-md bg-gray-100 hover:bg-gray-200 focus:outline-none">Next</button>
+            </div>
+        </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-between items-center mt-4 mb-4">
+                <div class="flex space-x-2">
+                    <a href="{{ route('laporan.export-excel') }}" class="btn bg-green-500 text-white hover:bg-green-600">
+                        <i class="fas fa-file-excel mr-2"></i>Export Excel
+                    </a>
+                    <a href="{{ route('laporan.export-pdf') }}" class="btn bg-red-500 text-white hover:bg-red-600">
+                        <i class="fas fa-file-pdf mr-2"></i>Export PDF
+                    </a>
+                    <button onclick="window.print()" class="btn bg-gray-500 text-white hover:bg-gray-600">
+                        <i class="fas fa-print mr-2"></i>Print
+                    </button>
+                </div>
+            </div>
 @endsection
