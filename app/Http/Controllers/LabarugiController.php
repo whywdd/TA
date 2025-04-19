@@ -2,138 +2,136 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\LabarugiModel;
 use Illuminate\Http\Request;
+use App\Models\LabarugiModel;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class LabarugiController extends Controller
 {
+    private function getKodeAkun($kategori)
+    {
+        $kategori = trim(strtolower($kategori));
+        
+        // Pendapatan Operasional (41)
+        if (str_contains($kategori, 'pendapatan penjualan')) return '241001';
+        if (str_contains($kategori, 'pendapatan jasa')) return '241002';
+        
+        // Pendapatan Non-Operasional (42)
+        if (str_contains($kategori, 'pendapatan bunga')) return '242001';
+        if (str_contains($kategori, 'pendapatan sewa')) return '242002';
+        if (str_contains($kategori, 'pendapatan komisi')) return '242003';
+        if (str_contains($kategori, 'pendapatan lain')) return '242004';
+        
+        // Beban Operasional (51)
+        if (str_contains($kategori, 'beban gaji')) return '251001';
+        if (str_contains($kategori, 'beban sewa')) return '251002';
+        if (str_contains($kategori, 'beban utilitas')) return '251003';
+        if (str_contains($kategori, 'beban penyusutan')) return '251004';
+        if (str_contains($kategori, 'beban supplies')) return '251005';
+        if (str_contains($kategori, 'beban iklan')) return '251006';
+        
+        // Beban Non-Operasional (52)
+        if (str_contains($kategori, 'beban bunga')) return '252001';
+        if (str_contains($kategori, 'beban lain')) return '252002';
+        
+        return null;
+    }
+
     public function index(Request $request)
     {
-        // Default periode adalah bulan ini
+        // Default date range
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
 
-        $model = new LabarugiModel();
+        // Inisialisasi array untuk menyimpan data
+        $pendapatan = [];
+        $beban = [];
 
-        // Helper function untuk menjumlahkan uang masuk
-        $sumUangMasuk = "COALESCE(uang_masuk, 0) + COALESCE(uang_masuk2, 0) + COALESCE(uang_masuk3, 0) + COALESCE(uang_masuk4, 0) + COALESCE(uang_masuk5, 0)";
-        
-        // Helper function untuk menjumlahkan uang keluar
-        $sumUangKeluar = "COALESCE(uang_keluar, 0) + COALESCE(uang_keluar2, 0) + COALESCE(uang_keluar3, 0) + COALESCE(uang_keluar4, 0) + COALESCE(uang_keluar5, 0)";
+        try {
+            // Ambil semua transaksi dalam periode
+            $transaksis = DB::table('laporan_transaksis')
+                ->whereBetween('Tanggal', [$startDate, $endDate])
+                ->get();
 
-        // Mengambil data pendapatan operasional (41)
-        $pendapatanPenjualan = $model->where('kode', '241001')
-            ->whereBetween('Tanggal', [$startDate, $endDate])
-            ->select(DB::raw("SUM($sumUangMasuk) as total"))
-            ->value('total') ?? 0;
+            foreach ($transaksis as $transaksi) {
+                // Proses kategori1
+                if (!empty($transaksi->kategori)) {
+                    $this->prosesKategori(
+                        $transaksi->kategori,
+                        $transaksi->uang_masuk ?? 0,
+                        $transaksi->uang_keluar ?? 0,
+                        $pendapatan,
+                        $beban
+                    );
+                }
 
-        $pendapatanJasa = $model->where('kode', '241002')
-            ->whereBetween('Tanggal', [$startDate, $endDate])
-            ->select(DB::raw("SUM($sumUangMasuk) as total"))
-            ->value('total') ?? 0;
+                // Proses kategori2-5
+                for ($i = 2; $i <= 5; $i++) {
+                    $kategori = $transaksi->{"kategori$i"};
+                    if (!empty($kategori)) {
+                        $this->prosesKategori(
+                            $kategori,
+                            $transaksi->{"uang_masuk$i"} ?? 0,
+                            $transaksi->{"uang_keluar$i"} ?? 0,
+                            $pendapatan,
+                            $beban
+                        );
+                    }
+                }
+            }
 
-        // Mengambil data pendapatan non-operasional (42)
-        $pendapatanBunga = $model->where('kode', '242001')
-            ->whereBetween('Tanggal', [$startDate, $endDate])
-            ->select(DB::raw("SUM($sumUangMasuk) as total"))
-            ->value('total') ?? 0;
+            // Hitung total
+            $total_pendapatan = array_sum(array_column($pendapatan, 'nominal'));
+            $total_beban = abs(array_sum(array_column($beban, 'nominal')));
+            $laba_rugi = $total_pendapatan - $total_beban;
 
-        $pendapatanSewa = $model->where('kode', '242002')
-            ->whereBetween('Tanggal', [$startDate, $endDate])
-            ->select(DB::raw("SUM($sumUangMasuk) as total"))
-            ->value('total') ?? 0;
+            return view('Labarugi', [
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+                'pendapatan' => $pendapatan,
+                'beban' => $beban,
+                'total_pendapatan' => $total_pendapatan,
+                'total_beban' => $total_beban,
+                'laba_rugi' => $laba_rugi
+            ]);
 
-        $pendapatanKomisi = $model->where('kode', '242003')
-            ->whereBetween('Tanggal', [$startDate, $endDate])
-            ->select(DB::raw("SUM($sumUangMasuk) as total"))
-            ->value('total') ?? 0;
+        } catch (\Exception $e) {
+            Log::error("Error in LabarugiController: " . $e->getMessage());
+            throw $e;
+        }
+    }
 
-        $pendapatanLain = $model->where('kode', '242004')
-            ->whereBetween('Tanggal', [$startDate, $endDate])
-            ->select(DB::raw("SUM($sumUangMasuk) as total"))
-            ->value('total') ?? 0;
+    private function prosesKategori($kategori, $uang_masuk, $uang_keluar, &$pendapatan, &$beban)
+    {
+        $kodeAkun = $this->getKodeAkun($kategori);
+        if ($kodeAkun) {
+            $nominal = $uang_masuk - $uang_keluar;
+            $data = [
+                'kategori' => $kategori,
+                'kode_akun' => $kodeAkun,
+                'nominal' => $nominal
+            ];
 
-        // Mengambil data beban operasional (51)
-        $bebanGaji = $model->where('kode', '251001')
-            ->whereBetween('Tanggal', [$startDate, $endDate])
-            ->select(DB::raw("SUM($sumUangKeluar) as total"))
-            ->value('total') ?? 0;
+            if (str_starts_with($kodeAkun, '24')) {
+                if (isset($pendapatan[$kategori])) {
+                    $pendapatan[$kategori]['nominal'] += $nominal;
+                } else {
+                    $pendapatan[$kategori] = $data;
+                }
+            } elseif (str_starts_with($kodeAkun, '25')) {
+                if (isset($beban[$kategori])) {
+                    $beban[$kategori]['nominal'] += $nominal;
+                } else {
+                    $beban[$kategori] = $data;
+                }
+            }
+        }
+    }
 
-        $bebanSewa = $model->where('kode', '251002')
-            ->whereBetween('Tanggal', [$startDate, $endDate])
-            ->select(DB::raw("SUM($sumUangKeluar) as total"))
-            ->value('total') ?? 0;
-
-        $bebanUtilitas = $model->where('kode', '251003')
-            ->whereBetween('Tanggal', [$startDate, $endDate])
-            ->select(DB::raw("SUM($sumUangKeluar) as total"))
-            ->value('total') ?? 0;
-
-        $bebanPenyusutan = $model->where('kode', '251004')
-            ->whereBetween('Tanggal', [$startDate, $endDate])
-            ->select(DB::raw("SUM($sumUangKeluar) as total"))
-            ->value('total') ?? 0;
-
-        $bebanSupplies = $model->where('kode', '251005')
-            ->whereBetween('Tanggal', [$startDate, $endDate])
-            ->select(DB::raw("SUM($sumUangKeluar) as total"))
-            ->value('total') ?? 0;
-
-        $bebanIklan = $model->where('kode', '251006')
-            ->whereBetween('Tanggal', [$startDate, $endDate])
-            ->select(DB::raw("SUM($sumUangKeluar) as total"))
-            ->value('total') ?? 0;
-
-        // Mengambil data beban non-operasional (52)
-        $bebanBunga = $model->where('kode', '252001')
-            ->whereBetween('Tanggal', [$startDate, $endDate])
-            ->select(DB::raw("SUM($sumUangKeluar) as total"))
-            ->value('total') ?? 0;
-
-        $bebanLain = $model->where('kode', '252002')
-            ->whereBetween('Tanggal', [$startDate, $endDate])
-            ->select(DB::raw("SUM($sumUangKeluar) as total"))
-            ->value('total') ?? 0;
-
-        // Menghitung total pendapatan
-        $totalPendapatanOperasional = $pendapatanPenjualan + $pendapatanJasa;
-        $totalPendapatanNonOperasional = $pendapatanBunga + $pendapatanSewa + $pendapatanKomisi + $pendapatanLain;
-        $totalPendapatan = $totalPendapatanOperasional + $totalPendapatanNonOperasional;
-
-        // Menghitung total beban
-        $totalBebanOperasional = $bebanGaji + $bebanSewa + $bebanUtilitas + $bebanPenyusutan + $bebanSupplies + $bebanIklan;
-        $totalBebanNonOperasional = $bebanBunga + $bebanLain;
-        $totalBeban = $totalBebanOperasional + $totalBebanNonOperasional;
-
-        // Menghitung laba rugi
-        $totalLabaRugi = $totalPendapatan - $totalBeban;
-
-        return view('Labarugi', compact(
-            'startDate',
-            'endDate',
-            'pendapatanPenjualan',
-            'pendapatanJasa',
-            'pendapatanBunga',
-            'pendapatanSewa',
-            'pendapatanKomisi',
-            'pendapatanLain',
-            'bebanGaji',
-            'bebanSewa',
-            'bebanUtilitas',
-            'bebanPenyusutan',
-            'bebanSupplies',
-            'bebanIklan',
-            'bebanBunga',
-            'bebanLain',
-            'totalPendapatanOperasional',
-            'totalPendapatanNonOperasional',
-            'totalBebanOperasional',
-            'totalBebanNonOperasional',
-            'totalPendapatan',
-            'totalBeban',
-            'totalLabaRugi'
-        ));
+    public function filter(Request $request)
+    {
+        return $this->index($request);
     }
 }

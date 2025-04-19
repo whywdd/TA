@@ -53,6 +53,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('laporan/export-pdf', [LaporanController::class, 'exportPDF'])->name('laporan.export-pdf');
     Route::delete('/laporan/{id}', [LaporanController::class, 'destroy'])->name('laporan.destroy');
     Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::get('/home/filter', [HomeController::class, 'filter'])->name('home.filter');
     Route::get('/User', [UserController::class, 'index'])->name('User.index');
     Route::get('/User/create', [UserController::class, 'create'])->name('User.create');
     Route::post('/User', [UserController::class, 'store'])->name('User.store');
@@ -70,5 +71,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/rekening/export-excel', [RekeningController::class, 'exportExcel'])->name('rekening.export-excel');
     Route::get('/rekening/export-pdf', [RekeningController::class, 'exportPDF'])->name('rekening.export-pdf');
     Route::resource('neracasaldo', NeracasaldoController::class);
-    Route::get('/laporan-laba-rugi', [LabarugiController::class, 'index'])->name('labarugi.index');
+    Route::get('/labarugi', [LabarugiController::class, 'index'])->name('labarugi.index');
+    Route::get('/labarugi/filter', [LabarugiController::class, 'filter'])->name('labarugi.filter');
 });
