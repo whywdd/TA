@@ -1,6 +1,45 @@
 @extends('Core.Sidebar')
 
 @section('content')
+    @php
+        function getAccountTypePHP($kodeAkun) {
+            $kode = (string)$kodeAkun;
+            if (str_starts_with($kode, '111') || str_starts_with($kode, '112')) {
+                return 'AKTIVA';
+            } else if (str_starts_with($kode, '121') || str_starts_with($kode, '122') || str_starts_with($kode, '131')) {
+                return 'PASIVA';
+            } else if (str_starts_with($kode, '241') || str_starts_with($kode, '242')) {
+                return 'PENDAPATAN';
+            } else if (str_starts_with($kode, '251') || str_starts_with($kode, '252')) {
+                return 'BEBAN';
+            }
+            return 'UNKNOWN';
+        }
+
+        function calculateBalancePHP($previousBalance, $debit, $kredit, $accountType) {
+            $balance = $previousBalance;
+            
+            switch($accountType) {
+                case 'AKTIVA':
+                    // Aktiva: bertambah di debit, berkurang di kredit
+                    $balance = $balance + $debit - $kredit;
+                    break;
+                case 'PASIVA':
+                case 'PENDAPATAN':
+                    // Pasiva & Pendapatan: bertambah di kredit, berkurang di debit
+                    $balance = $balance - $debit + $kredit;
+                    break;
+                case 'BEBAN':
+                    // Beban: bertambah di debit, berkurang di kredit
+                    $balance = $balance + $debit - $kredit;
+                    break;
+                default:
+                    $balance = $balance + $debit - $kredit;
+            }
+            
+            return $balance;
+        }
+    @endphp
     <title>Buku Besar Perusahaan Dagang</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -22,6 +61,7 @@
                 @php
                     $kodeAkun = $items->first()->kode ?? '-';
                     $runningBalance = 0;
+                    $accountType = substr($kodeAkun, 0, 3);
                 @endphp
 
                 <div class="mb-8">
@@ -50,14 +90,15 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($items as $item)
-                                    @php
-                                        $runningBalance += ($item->debit - $item->kredit);
-                                    @endphp
+                                @php
+                                    $runningBalance = 0;
+                                    $accountType = getAccountTypePHP($kodeAkun);
+                                @endphp
+                                @foreach($items->sortBy('Tanggal') as $item)
                                     <tr class="border-b border-gray-200 hover:bg-gray-50">
                                         <td class="py-3 px-4">{{ date('d/m/Y', strtotime($item->Tanggal)) }}</td>
                                         <td class="py-3 px-4">{{ $item->keterangan }}</td>
-                                        <td class="py-3 px-4 text-center">-</td>
+                                        <td class="py-3 px-4 text-center">{{ $item->kode }}</td>
                                         <td class="py-3 px-4 text-right">
                                             @if($item->debit > 0)
                                                 {{ number_format($item->debit, 0, ',', '.') }}
@@ -72,7 +113,13 @@
                                                 -
                                             @endif
                                         </td>
-                                        <td class="py-3 px-4 text-right">{{ number_format($runningBalance, 0, ',', '.') }}</td>
+                                        <td class="py-3 px-4 text-right">
+                                            @php
+                                                $runningBalance = calculateBalancePHP($runningBalance, $item->debit ?? 0, $item->kredit ?? 0, $accountType);
+                                                $displayBalance = $runningBalance < 0 ? '-' . number_format(abs($runningBalance), 0, ',', '.') : number_format($runningBalance, 0, ',', '.');
+                                            @endphp
+                                            {{ $displayBalance }}
+                                        </td>
                                         <td class="py-3 px-4 text-center">
                                             <div class="flex justify-center space-x-2">
                                                 <button class="text-blue-600 hover:text-blue-800" title="Edit">
@@ -142,6 +189,44 @@
     </style>
 
     <script>
+    function getAccountType(kodeAkun) {
+        const kode = kodeAkun.toString();
+        if (kode.startsWith('111') || kode.startsWith('112')) {
+            return 'AKTIVA';
+        } else if (kode.startsWith('121') || kode.startsWith('122') || kode.startsWith('131')) {
+            return 'PASIVA';
+        } else if (kode.startsWith('241') || kode.startsWith('242')) {
+            return 'PENDAPATAN';
+        } else if (kode.startsWith('251') || kode.startsWith('252')) {
+            return 'BEBAN';
+        }
+        return 'UNKNOWN';
+    }
+
+    function calculateBalance(previousBalance, debit, kredit, accountType) {
+        let balance = previousBalance;
+        
+        switch(accountType) {
+            case 'AKTIVA':
+                // Aktiva: bertambah di debit, berkurang di kredit
+                balance = balance + debit - kredit;
+                break;
+            case 'PASIVA':
+            case 'PENDAPATAN':
+                // Pasiva & Pendapatan: bertambah di kredit, berkurang di debit
+                balance = balance - debit + kredit;
+                break;
+            case 'BEBAN':
+                // Beban: bertambah di debit, berkurang di kredit
+                balance = balance + debit - kredit;
+                break;
+            default:
+                balance = balance + debit - kredit;
+        }
+        
+        return balance;
+    }
+
     function hapusData(id) {
         if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
             fetch(`/laporan/${id}`, {

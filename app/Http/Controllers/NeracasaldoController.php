@@ -10,77 +10,70 @@ class NeracasaldoController extends Controller
     public function index()
     {
         $rawTransaksis = NeracasaldoModel::orderBy('kode', 'asc')->get();
-        $transaksis = collect();
+        $totalsPerAkun = [];
 
         foreach ($rawTransaksis as $transaksi) {
-            // Menambahkan baris untuk kode utama
-            if ($transaksi->kode) {
-                $transaksis->push([
-                    'kode' => $transaksi->kode,
-                    'kategori' => $transaksi->kategori,
-                    'keterangan' => $transaksi->keterangan,
-                    'nama_karyawan' => $transaksi->nama_karyawan,
-                    'debit' => $transaksi->uang_masuk,
-                    'kredit' => $transaksi->uang_keluar,
-                    'id' => $transaksi->id
-                ]);
-            }
+            // Fungsi untuk menambahkan atau memperbarui total per akun
+            $processAkun = function($kode, $kategori, $debit, $kredit) use (&$totalsPerAkun) {
+                if (!empty($kode) && !empty($kategori)) {
+                    if (!isset($totalsPerAkun[$kategori])) {
+                        $totalsPerAkun[$kategori] = [
+                            'kode' => $kode,
+                            'kategori' => $kategori,
+                            'debit' => 0,
+                            'kredit' => 0
+                        ];
+                    }
+                    $totalsPerAkun[$kategori]['debit'] += floatval($debit ?? 0);
+                    $totalsPerAkun[$kategori]['kredit'] += floatval($kredit ?? 0);
+                }
+            };
 
-            // Menambahkan baris untuk kode2
-            if ($transaksi->kode2) {
-                $transaksis->push([
-                    'kode' => $transaksi->kode2,
-                    'kategori' => $transaksi->kategori2,
-                    'keterangan' => $transaksi->keterangan,
-                    'nama_karyawan' => $transaksi->nama_karyawan,
-                    'debit' => $transaksi->uang_masuk2,
-                    'kredit' => $transaksi->uang_keluar2,
-                    'id' => $transaksi->id
-                ]);
-            }
+            // Proses untuk semua kategori
+            $processAkun($transaksi->kode, $transaksi->kategori, $transaksi->uang_masuk, $transaksi->uang_keluar);
+            $processAkun($transaksi->kode2, $transaksi->kategori2, $transaksi->uang_masuk2, $transaksi->uang_keluar2);
+            $processAkun($transaksi->kode3, $transaksi->kategori3, $transaksi->uang_masuk3, $transaksi->uang_keluar3);
+            $processAkun($transaksi->kode4, $transaksi->kategori4, $transaksi->uang_masuk4, $transaksi->uang_keluar4);
+            $processAkun($transaksi->kode5, $transaksi->kategori5, $transaksi->uang_masuk5, $transaksi->uang_keluar5);
+        }
 
-            // Menambahkan baris untuk kode3
-            if ($transaksi->kode3) {
-                $transaksis->push([
-                    'kode' => $transaksi->kode3,
-                    'kategori' => $transaksi->kategori3,
-                    'keterangan' => $transaksi->keterangan,
-                    'nama_karyawan' => $transaksi->nama_karyawan,
-                    'debit' => $transaksi->uang_masuk3,
-                    'kredit' => $transaksi->uang_keluar3,
-                    'id' => $transaksi->id
-                ]);
-            }
-
-            // Menambahkan baris untuk kode4
-            if ($transaksi->kode4) {
-                $transaksis->push([
-                    'kode' => $transaksi->kode4,
-                    'kategori' => $transaksi->kategori4,
-                    'keterangan' => $transaksi->keterangan,
-                    'nama_karyawan' => $transaksi->nama_karyawan,
-                    'debit' => $transaksi->uang_masuk4,
-                    'kredit' => $transaksi->uang_keluar4,
-                    'id' => $transaksi->id
-                ]);
-            }
-
-            // Menambahkan baris untuk kode5
-            if ($transaksi->kode5) {
-                $transaksis->push([
-                    'kode' => $transaksi->kode5,
-                    'kategori' => $transaksi->kategori5,
-                    'keterangan' => $transaksi->keterangan,
-                    'nama_karyawan' => $transaksi->nama_karyawan,
-                    'debit' => $transaksi->uang_masuk5,
-                    'kredit' => $transaksi->uang_keluar5,
-                    'id' => $transaksi->id
-                ]);
+        // Hitung saldo akhir dan atur posisi debit/kredit sesuai jenis akun
+        $finalTransaksis = [];
+        foreach ($totalsPerAkun as $kategori => $data) {
+            $kodeAwal = substr($data['kode'], 0, 3);
+            $saldo = $data['debit'] - $data['kredit'];
+            
+            // Tentukan posisi saldo (debit/kredit) berdasarkan jenis akun
+            if (in_array($kodeAwal, ['111', '112']) || in_array($kodeAwal, ['251', '252'])) {
+                // Aktiva dan Beban: saldo normal di debit
+                if ($saldo != 0) {
+                    $finalTransaksis[] = [
+                        'kode' => $data['kode'],
+                        'kategori' => $kategori,
+                        'debit' => $saldo,
+                        'kredit' => 0
+                    ];
+                }
+            } else {
+                // Pasiva dan Pendapatan: saldo normal di kredit
+                if ($saldo != 0) {
+                    $finalTransaksis[] = [
+                        'kode' => $data['kode'],
+                        'kategori' => $kategori,
+                        'debit' => 0,
+                        'kredit' => -$saldo
+                    ];
+                }
             }
         }
 
-        // Mengurutkan berdasarkan kode
-        $transaksis = $transaksis->sortBy('kode');
+        // Urutkan berdasarkan kode
+        usort($finalTransaksis, function($a, $b) {
+            return $a['kode'] <=> $b['kode'];
+        });
+        
+        // Konversi ke collection setelah selesai
+        $transaksis = collect($finalTransaksis);
         
         return view('Neracasaldo', compact('transaksis'));
     }

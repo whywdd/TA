@@ -30,33 +30,52 @@ class RekeningController extends Controller
         // Kelompokkan data berdasarkan kategori
         $groupedLaporan = collect();
         
-        // Kelompokkan berdasarkan kategori 1-5
-        for ($i = 1; $i <= 5; $i++) {
-            $kategoriField = $i === 1 ? 'kategori' : "kategori{$i}";
-            $uangMasukField = $i === 1 ? 'uang_masuk' : "uang_masuk{$i}";
-            $uangKeluarField = $i === 1 ? 'uang_keluar' : "uang_keluar{$i}";
+        // Proses semua data transaksi
+        foreach ($laporan as $item) {
+            // Proses untuk kategori utama
+            if (!empty($item->kategori)) {
+                $kategori = $item->kategori;
+                if (!isset($groupedLaporan[$kategori])) {
+                    $groupedLaporan[$kategori] = collect();
+                }
+                
+                $groupedLaporan[$kategori]->push((object)[
+                    'id' => $item->id,
+                    'Tanggal' => $item->Tanggal,
+                    'keterangan' => $item->keterangan,
+                    'kode' => $this->generateKode($kategori),
+                    'debit' => $item->uang_masuk ?? 0,
+                    'kredit' => $item->uang_keluar ?? 0
+                ]);
+            }
             
-            $filteredLaporan = $laporan->filter(function ($item) use ($kategoriField) {
-                return !empty($item->$kategoriField);
-            });
-            
-            foreach ($filteredLaporan->groupBy($kategoriField) as $kategori => $items) {
-                if (!empty($kategori)) {
-                    $groupedLaporan[$kategori] = $items->map(function ($item) use ($kategoriField, $uangMasukField, $uangKeluarField) {
-                        // Gunakan kode yang sesuai dengan nama kategori
-                        $kode = $this->generateKode($item->$kategoriField);
-                        
-                        return (object)[
-                            'id' => $item->id,
-                            'Tanggal' => $item->Tanggal,
-                            'keterangan' => $item->keterangan,
-                            'kode' => $kode,
-                            'debit' => $item->$uangMasukField ?? 0,
-                            'kredit' => $item->$uangKeluarField ?? 0
-                        ];
-                    });
+            // Proses untuk kategori tambahan (2-5)
+            for ($i = 2; $i <= 5; $i++) {
+                $kategoriField = "kategori{$i}";
+                $uangMasukField = "uang_masuk{$i}";
+                $uangKeluarField = "uang_keluar{$i}";
+                
+                if (!empty($item->$kategoriField)) {
+                    $kategori = $item->$kategoriField;
+                    if (!isset($groupedLaporan[$kategori])) {
+                        $groupedLaporan[$kategori] = collect();
+                    }
+                    
+                    $groupedLaporan[$kategori]->push((object)[
+                        'id' => $item->id,
+                        'Tanggal' => $item->Tanggal,
+                        'keterangan' => $item->keterangan,
+                        'kode' => $this->generateKode($kategori),
+                        'debit' => $item->$uangMasukField ?? 0,
+                        'kredit' => $item->$uangKeluarField ?? 0
+                    ]);
                 }
             }
+        }
+        
+        // Urutkan transaksi berdasarkan tanggal untuk setiap kategori
+        foreach ($groupedLaporan as $kategori => $items) {
+            $groupedLaporan[$kategori] = $items->sortBy('Tanggal');
         }
         
         // Hitung total untuk setiap kategori

@@ -140,7 +140,7 @@ class HomeController extends Controller
             
             $lastMonthTransaksis = DB::table('laporan_transaksis')
                 ->whereBetween('Tanggal', [$lastMonthStart, $lastMonthEnd])
-                ->get();
+            ->get();
 
             $lastMonthUangMasuk = 0;
             $lastMonthUangKeluar = 0;
@@ -185,22 +185,22 @@ class HomeController extends Controller
                 })
             )->values();
 
-            // Get monthly totals for chart
-            $monthlyTotals = DB::table('laporan_transaksis')
-                ->select(
-                    DB::raw('DATE_FORMAT(Tanggal, "%Y-%m") as periode'),
+        // Get monthly totals for chart
+        $monthlyTotals = DB::table('laporan_transaksis')
+            ->select(
+                DB::raw('DATE_FORMAT(Tanggal, "%Y-%m") as periode'),
                     DB::raw('SUM(uang_masuk) + SUM(COALESCE(uang_masuk2, 0)) + SUM(COALESCE(uang_masuk3, 0)) + SUM(COALESCE(uang_masuk4, 0)) + SUM(COALESCE(uang_masuk5, 0)) as total_debit'),
                     DB::raw('SUM(uang_keluar) + SUM(COALESCE(uang_keluar2, 0)) + SUM(COALESCE(uang_keluar3, 0)) + SUM(COALESCE(uang_keluar4, 0)) + SUM(COALESCE(uang_keluar5, 0)) as total_kredit')
-                )
-                ->groupBy('periode')
-                ->orderBy('periode')
-                ->get();
+            )
+            ->groupBy('periode')
+            ->orderBy('periode')
+            ->get();
 
-            // Get recent transactions
-            $recentTransactions = DB::table('laporan_transaksis')
-                ->orderBy('Tanggal', 'desc')
-                ->limit(10)
-                ->get();
+        // Get recent transactions
+        $recentTransactions = DB::table('laporan_transaksis')
+            ->orderBy('Tanggal', 'desc')
+            ->limit(10)
+            ->get();
 
             // Debug log untuk memeriksa nilai
             Log::info("Total Uang Masuk: " . $totalUangMasuk);
@@ -209,19 +209,19 @@ class HomeController extends Controller
             Log::info("Laba Rugi Total: " . $labaRugiTotal);
             Log::info("Laba Rugi Bulan Ini: " . $labaRugiBulanIni);
 
-            return view('home', compact(
+        return view('home', compact(
                 'startDate',
                 'endDate',
-                'totalUangMasuk',
-                'totalUangKeluar',
+            'totalUangMasuk',
+            'totalUangKeluar',
                 'currentMonthUangMasuk',
                 'currentMonthUangKeluar',
                 'totalSaldo',
                 'growthPercentage',
                 'labaRugiTotal',
                 'labaRugiBulanIni',
-                'monthlyTotals',
-                'categoryTotals',
+            'monthlyTotals',
+            'categoryTotals',
                 'recentTransactions',
                 'pendapatan',
                 'beban'

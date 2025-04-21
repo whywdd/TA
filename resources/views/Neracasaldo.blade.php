@@ -24,45 +24,40 @@
                     <thead>
                         <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
                             <th class="py-3 px-4 text-left">Kode</th>
-                            <th class="py-3 px-4 text-left">Kategori</th>
-                            <th class="py-3 px-4 text-left">Keterangan</th>
+                            <th class="py-3 px-4 text-left">Nama Akun</th>
                             <th class="py-3 px-4 text-right">Debit</th>
                             <th class="py-3 px-4 text-right">Kredit</th>
-                            <th class="py-3 px-4 text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
+                        @php
+                            $totalDebit = 0;
+                            $totalKredit = 0;
+                        @endphp
                         @foreach($transaksis as $transaksi)
                             <tr class="border-b border-gray-200 hover:bg-gray-100">
                                 <td class="py-3 px-4">{{ $transaksi['kode'] }}</td>
                                 <td class="py-3 px-4">{{ $transaksi['kategori'] }}</td>
-                                <td class="py-3 px-4">{{ $transaksi['keterangan'] }}</td>
                                 <td class="py-3 px-4 text-right">
-                                    @if($transaksi['debit'] > 0)
-                                        {{ number_format($transaksi['debit'], 2) }}
-                                    @endif
+                                    @php $totalDebit += $transaksi['debit']; @endphp
+                                    {{ $transaksi['debit'] != 0 ? ($transaksi['debit'] < 0 ? '-' : '') . number_format(abs($transaksi['debit']), 0, ',', '.') : '-' }}
                                 </td>
                                 <td class="py-3 px-4 text-right">
-                                    @if($transaksi['kredit'] > 0)
-                                        {{ number_format($transaksi['kredit'], 2) }}
-                                    @endif
-                                </td>
-                                <td class="py-3 px-4 text-center">
-                                    <div class="flex item-center justify-center">
-                                        <a href="{{ route('neracasaldo.edit', $transaksi['id']) }}" class="w-4 mr-2 transform hover:text-purple-500 hover:scale-110">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <form action="{{ route('neracasaldo.destroy', $transaksi['id']) }}" method="POST" class="inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="w-4 mr-2 transform hover:text-red-500 hover:scale-110" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
+                                    @php $totalKredit += $transaksi['kredit']; @endphp
+                                    {{ $transaksi['kredit'] != 0 ? ($transaksi['kredit'] < 0 ? '-' : '') . number_format(abs($transaksi['kredit']), 0, ',', '.') : '-' }}
                                 </td>
                             </tr>
                         @endforeach
+                        <!-- Total Row -->
+                        <tr class="bg-gray-50 font-bold">
+                            <td class="py-3 px-4" colspan="2">Total</td>
+                            <td class="py-3 px-4 text-right">
+                                {{ $totalDebit != 0 ? ($totalDebit < 0 ? '-' : '') . number_format(abs($totalDebit), 0, ',', '.') : '-' }}
+                            </td>
+                            <td class="py-3 px-4 text-right">
+                                {{ $totalKredit != 0 ? ($totalKredit < 0 ? '-' : '') . number_format(abs($totalKredit), 0, ',', '.') : '-' }}
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
