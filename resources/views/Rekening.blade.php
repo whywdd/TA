@@ -53,8 +53,8 @@
             <!-- Header -->
             <div class="mb-4 bg-blue-600 text-white p-4 rounded-lg shadow-md">
                 <h1 class="text-2xl font-bold">Buku Besar Perusahaan Dagang</h1>
-                <p class="text-sm mt-1">Entri Jurnal Umum Budivespaendut</p>
-                <p class="text-sm">Anggrek</p>
+                <p class="text-sm mt-1">Buku Besar Budivespaendut</p>
+                <p class="text-sm">Kebun Anggrek</p>
             </div>
 
             @foreach($groupedLaporan as $kategori => $items)
@@ -86,7 +86,7 @@
                                     <th class="py-3 px-4 text-right">Debit (Rp)</th>
                                     <th class="py-3 px-4 text-right">Kredit (Rp)</th>
                                     <th class="py-3 px-4 text-right">Saldo</th>
-                                    <th class="py-3 px-4 text-center">Aksi</th>
+                                    <!-- <th class="py-3 px-4 text-center">Aksi</th> -->
                                 </tr>
                             </thead>
                             <tbody>
@@ -120,7 +120,7 @@
                                             @endphp
                                             {{ $displayBalance }}
                                         </td>
-                                        <td class="py-3 px-4 text-center">
+                                        <!-- <td class="py-3 px-4 text-center">
                                             <div class="flex justify-center space-x-2">
                                                 <button class="text-blue-600 hover:text-blue-800" title="Edit">
                                                     <i class="fas fa-edit"></i>
@@ -129,7 +129,7 @@
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </div>
-                                        </td>
+                                        </td> -->
                                     </tr>
                                 @endforeach
                             </tbody>

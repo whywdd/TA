@@ -157,12 +157,17 @@
                     </li>
                     <li>
                         <a href="{{ route('rekening.index') }}" class="block px-4 py-2 text-white hover:bg-blue-700">
-                            Rekening
+                            Buku Besar
                         </a>
                     </li>
                     <li>
                         <a href="{{ route('neracasaldo.index') }}" class="block px-4 py-2 text-white hover:bg-blue-700">
                             Neraca Saldo
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ route('labarugi.index') }}" class="block px-4 py-2 text-white hover:bg-blue-700">
+                            Laporan Laba Rugi
                         </a>
                     </li>
                 </ul>

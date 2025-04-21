@@ -19,7 +19,7 @@
             <!-- Header -->
             <div class="mb-4 bg-blue-600 text-white p-4 rounded-lg shadow-md">
                 <h1 class="text-2xl font-bold">Jurnal Umum</h1>
-                <p class="text-sm mt-1">Halaman ini menampilkan jurnal umum.</p>
+                <p class="text-sm mt-1">jurnal umum Budivespaendut.</p>
             </div>
 
             <!-- Summary Cards
@@ -200,18 +200,22 @@
                                 </td>
                                 <td class="py-3 px-4">
                                     <div class="flex flex-col">
-                                        <span>{{ $item->kategori }}</span>
+                                        @if($item->uang_masuk > 0)
+                                            <span>{{ $item->kategori }}</span>
+                                        @else
+                                            <span class="ml-8">{{ $item->kategori }}</span>
+                                        @endif
                                         @if(isset($item->kategori2))
-                                            <span class="text-sm text-gray-500">{{ $item->kategori2 }}</span>
+                                            <span class="text-sm text-gray-500 ml-8">{{ $item->kategori2 }}</span>
                                         @endif
                                         @if(isset($item->kategori3))
-                                            <span class="text-sm text-gray-500">{{ $item->kategori3 }}</span>
+                                            <span class="text-sm text-gray-500 ml-8">{{ $item->kategori3 }}</span>
                                         @endif
                                         @if(isset($item->kategori4))
-                                            <span class="text-sm text-gray-500">{{ $item->kategori4 }}</span>
+                                            <span class="text-sm text-gray-500 ml-8">{{ $item->kategori4 }}</span>
                                         @endif
                                         @if(isset($item->kategori5))
-                                            <span class="text-sm text-gray-500">{{ $item->kategori5 }}</span>
+                                            <span class="text-sm text-gray-500 ml-8">{{ $item->kategori5 }}</span>
                                         @endif
                                     </div>
                                 </td>
@@ -292,8 +296,8 @@
                                 </td>
                                 <td class="py-3 px-4 text-center">
                                     <div class="flex justify-center space-x-2">
-                                        <button class="text-blue-600 hover:text-blue-800" title="Edit">
-                                            <i class="fas fa-edit"></i>
+                                        <!-- <button class="text-blue-600 hover:text-blue-800" title="Edit">
+                                            <i class="fas fa-edit"></i> -->
                                         </button>
                                         <button onclick="hapusData({{ $item->id }})" class="text-red-600 hover:text-red-800" title="Hapus">
                                             <i class="fas fa-trash"></i>

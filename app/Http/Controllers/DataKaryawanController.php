@@ -34,9 +34,12 @@ class DataKaryawanController extends Controller
                 'gaji' => $gaji
             ]);
 
-            return redirect()->back()->with('success', 'Data karyawan berhasil ditambahkan!');
+            // Redirect ke halaman gaji dengan pesan sukses
+            return redirect()->route('gaji.index')
+                ->with('success', 'Data karyawan berhasil ditambahkan!');
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Gagal menambahkan data karyawan: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Gagal menambahkan data karyawan: ' . $e->getMessage());
         }
     }
 }

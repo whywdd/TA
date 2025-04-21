@@ -28,7 +28,7 @@
                 <!-- Header -->
                 <div class="mb-4 bg-blue-600 text-white p-4 rounded-lg shadow-md">
                     <h1 class="text-2xl font-bold">Laporan Laba Rugi</h1>
-                    <p class="text-sm mt-1">PT EXAMPLE</p>
+                    <p class="text-sm mt-1">Budivespaendut</p>
                     <p class="text-sm">Periode: {{ date('F Y', strtotime($startDate)) }}</p>
                 </div>
 
@@ -92,7 +92,14 @@
                     <tr class="bg-purple-100">
                         <td class="p-2 border border-gray-300 font-bold">Laba/Rugi Bersih</td>
                         <td class="text-right p-2 border border-gray-300 font-bold">
-                            {{ number_format(-($total_pendapatan) - $total_beban, 0, ',', '.') }}
+                            @php
+                                $labaRugi = -($total_pendapatan) - $total_beban;
+                            @endphp
+                            @if($labaRugi < 0)
+                                -Rp {{ number_format(abs($labaRugi), 0, ',', '.') }}
+                            @else
+                                Rp {{ number_format($labaRugi, 0, ',', '.') }}
+                            @endif
                         </td>
                     </tr>
                 </table>

@@ -29,25 +29,7 @@
   </div>
 
   <!-- Main Metrics -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-    <!-- Total Saldo Card -->
-    <!-- <div class="bg-white rounded-xl p-6 shadow-sm">
-      <div class="flex items-center">
-        <div class="w-12 h-12 rounded-lg bg-indigo-100 flex items-center justify-center me-3">
-          <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-        </div>
-        <div>
-          <p class="text-sm text-gray-500 mb-1">Total Saldo</p>
-          <h3 class="text-2xl font-bold text-gray-800">Rp {{ number_format($totalSaldo, 0, ',', '.') }}</h3>
-          <p class="text-sm {{ $growthPercentage >= 0 ? 'text-green-500' : 'text-red-500' }}">
-            {{ $growthPercentage >= 0 ? '↑' : '↓' }} {{ abs(round($growthPercentage, 1)) }}% dari bulan lalu
-          </p>
-        </div>
-      </div>
-    </div> -->
-
+  <div class="grid grid-cols-2 gap-4 mb-6">
     <!-- Total Pendapatan Card -->
     <div class="bg-white rounded-xl p-6 shadow-sm">
       <div class="flex items-center">
@@ -58,7 +40,13 @@
         </div>
         <div>
           <p class="text-sm text-gray-500 mb-1">Total Pendapatan</p>
-          <h3 class="text-2xl font-bold text-gray-800">Rp {{ number_format($totalUangMasuk, 0, ',', '.') }}</h3>
+          <h3 class="text-2xl font-bold text-gray-800">
+            @if($totalPendapatan < 0)
+              -Rp {{ number_format(abs($totalPendapatan), 0, ',', '.') }}
+            @else
+              Rp {{ number_format($totalPendapatan, 0, ',', '.') }}
+            @endif
+          </h3>
           <p class="text-sm text-gray-500">Periode: {{ date('d/m/Y', strtotime($startDate)) }} - {{ date('d/m/Y', strtotime($endDate)) }}</p>
         </div>
       </div>
@@ -74,7 +62,13 @@
         </div>
         <div>
           <p class="text-sm text-gray-500 mb-1">Total Beban</p>
-          <h3 class="text-2xl font-bold text-gray-800">Rp {{ number_format($totalUangKeluar, 0, ',', '.') }}</h3>
+          <h3 class="text-2xl font-bold text-gray-800">
+            @if($totalBeban < 0)
+              -Rp {{ number_format(abs($totalBeban), 0, ',', '.') }}
+            @else
+              Rp {{ number_format($totalBeban, 0, ',', '.') }}
+            @endif
+          </h3>
           <p class="text-sm text-gray-500">Periode: {{ date('d/m/Y', strtotime($startDate)) }} - {{ date('d/m/Y', strtotime($endDate)) }}</p>
         </div>
       </div>
@@ -92,13 +86,25 @@
           <span class="text-sm text-gray-600">{{ ucwords($item['kategori']) }}</span>
           <span class="text-xs text-gray-400 ml-2">({{ $item['kode_akun'] }})</span>
         </div>
-        <span class="text-sm font-medium text-green-600">Rp {{ number_format(abs($item['nominal']), 0, ',', '.') }}</span>
+        <span class="text-sm font-medium {{ $item['nominal'] < 0 ? 'text-red-600' : 'text-green-600' }}">
+          @if($item['nominal'] < 0)
+            -Rp {{ number_format(abs($item['nominal']), 0, ',', '.') }}
+          @else
+            Rp {{ number_format($item['nominal'], 0, ',', '.') }}
+          @endif
+        </span>
       </div>
       @endforeach
       <div class="mt-4 pt-4 border-t">
         <div class="flex justify-between items-center">
           <span class="font-semibold">Total Pendapatan</span>
-          <span class="font-semibold text-green-600">Rp {{ number_format($totalUangMasuk, 0, ',', '.') }}</span>
+          <span class="font-semibold {{ $totalPendapatan < 0 ? 'text-red-600' : 'text-green-600' }}">
+            @if($totalPendapatan < 0)
+              -Rp {{ number_format(abs($totalPendapatan), 0, ',', '.') }}
+            @else
+              Rp {{ number_format($totalPendapatan, 0, ',', '.') }}
+            @endif
+          </span>
         </div>
       </div>
     </div>
@@ -112,13 +118,25 @@
           <span class="text-sm text-gray-600">{{ ucwords($item['kategori']) }}</span>
           <span class="text-xs text-gray-400 ml-2">({{ $item['kode_akun'] }})</span>
         </div>
-        <span class="text-sm font-medium text-red-600">Rp {{ number_format(abs($item['nominal']), 0, ',', '.') }}</span>
+        <span class="text-sm font-medium {{ $item['nominal'] < 0 ? 'text-green-600' : 'text-red-600' }}">
+          @if($item['nominal'] < 0)
+            -Rp {{ number_format(abs($item['nominal']), 0, ',', '.') }}
+          @else
+            Rp {{ number_format($item['nominal'], 0, ',', '.') }}
+          @endif
+        </span>
       </div>
       @endforeach
       <div class="mt-4 pt-4 border-t">
         <div class="flex justify-between items-center">
           <span class="font-semibold">Total Beban</span>
-          <span class="font-semibold text-red-600">Rp {{ number_format($totalUangKeluar, 0, ',', '.') }}</span>
+          <span class="font-semibold {{ $totalBeban < 0 ? 'text-green-600' : 'text-red-600' }}">
+            @if($totalBeban < 0)
+              -Rp {{ number_format(abs($totalBeban), 0, ',', '.') }}
+            @else
+              Rp {{ number_format($totalBeban, 0, ',', '.') }}
+            @endif
+          </span>
         </div>
       </div>
     </div>
@@ -137,7 +155,11 @@
         </div>
         <div>
           <h3 class="text-2xl font-bold {{ $labaRugiTotal >= 0 ? 'text-green-600' : 'text-red-600' }}">
-            Rp {{ number_format(abs($labaRugiTotal), 0, ',', '.') }}
+            @if($labaRugiTotal < 0)
+              -Rp {{ number_format(abs($labaRugiTotal), 0, ',', '.') }}
+            @else
+              Rp {{ number_format($labaRugiTotal, 0, ',', '.') }}
+            @endif
           </h3>
           <p class="text-sm text-gray-500">{{ $labaRugiTotal >= 0 ? 'Laba' : 'Rugi' }}</p>
         </div>
@@ -155,7 +177,11 @@
         </div>
         <div>
           <h3 class="text-2xl font-bold {{ $labaRugiBulanIni >= 0 ? 'text-green-600' : 'text-red-600' }}">
-            Rp {{ number_format(abs($labaRugiBulanIni), 0, ',', '.') }}
+            @if($labaRugiBulanIni < 0)
+              -Rp {{ number_format(abs($labaRugiBulanIni), 0, ',', '.') }}
+            @else
+              Rp {{ number_format($labaRugiBulanIni, 0, ',', '.') }}
+            @endif
           </h3>
           <p class="text-sm text-gray-500">{{ $labaRugiBulanIni >= 0 ? 'Laba' : 'Rugi' }}</p>
         </div>

@@ -33,15 +33,37 @@ class GajiController extends Controller
 
     public function update(Request $request, $id)
     {
-        $karyawan = GajiModel::findOrFail($id);
-        $karyawan->update($request->all());
-        return redirect()->route('gaji.index')->with('success', 'Data gaji berhasil diperbarui');
+        try {
+            $karyawan = GajiModel::findOrFail($id);
+            
+            // Bersihkan format angka dari gaji
+            $request->merge([
+                'gaji' => str_replace('.', '', $request->gaji)
+            ]);
+
+            $karyawan->update($request->all());
+            return redirect()->route('gaji.index')
+                ->with('success', 'Data gaji berhasil diperbarui!');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Gagal memperbarui data gaji: ' . $e->getMessage());
+        }
     }
 
     public function destroy($id)
     {
-        $karyawan = GajiModel::findOrFail($id);
-        $karyawan->delete();
-        return response()->json(['success' => true]);
+        try {
+            $karyawan = GajiModel::findOrFail($id);
+            $karyawan->delete();
+            return response()->json([
+                'success' => true,
+                'message' => 'Data gaji berhasil dihapus!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data gaji: ' . $e->getMessage()
+            ]);
+        }
     }
 }

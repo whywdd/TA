@@ -14,8 +14,8 @@
             <!-- Header -->
             <div class="mb-4 bg-blue-600 text-white p-4 rounded-lg shadow-md">
                 <h1 class="text-2xl font-bold">Neraca Saldo Perusahaan Dagang</h1>
-                <p class="text-sm mt-1">Entri Neraca Saldo Budivespaendut</p>
-                <p class="text-sm">Anggrek</p>
+                <p class="text-sm mt-1">Neraca Saldo Budivespaendut</p>
+                <p class="text-sm">Kebun Anggrek</p>
             </div>
 
             <!-- Tabel Transaksi -->
