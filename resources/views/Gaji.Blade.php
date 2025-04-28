@@ -5,7 +5,7 @@
     <!-- Header -->
     <div class="mb-4 bg-blue-600 text-white p-4 rounded-lg shadow-md">
         <h1 class="text-2xl font-bold">Gaji Karyawan</h1>
-        <p class="text-sm mt-1">Tabel keterangan gaji karyawan</p>
+        <p class="text-sm mt-1">Tabel keterangan karyawan</p>
     </div>
     
     <!-- SweetAlert2 CSS -->

@@ -3,40 +3,53 @@
 namespace App\Http\Controllers;
 
 use App\Models\UangMasukModel; // Import model
+use App\Models\GajiModel; // Import model gaji
 use Illuminate\Http\Request;
 
 class UangMasukController extends Controller
 {
     public function index()
     {
-        return view('UangMasuk');
+        // Ambil data karyawan untuk dropdown
+        $karyawans = GajiModel::whereNotNull('gaji')
+            ->where('gaji', '>', 0)
+            ->select('id', 'nama', 'jabatan', 'gaji')
+            ->get();
+            
+        return view('UangMasuk', compact('karyawans'));
     }
 
     public function store(Request $request)
     {
         try {
-            // Validasi input
-            $validated = $request->validate([
+            $request->validate([
                 'Tanggal' => 'required|date',
+                'keterangan_type' => 'required|in:karyawan,manual',
                 'kategori' => 'required|array',
-                'kategori.*' => 'required|string',
-                'keterangan' => 'required|string',
-                'nominal' => 'required|array',
-                'nominal.*' => 'required|string',
                 'posisi' => 'required|array',
-                'posisi.*' => 'required|in:debit,kredit',
+                'nominal' => 'required|array',
             ]);
 
-            // Inisialisasi data untuk disimpan
+            // Gabungkan keterangan berdasarkan tipe input
+            $keterangan = '';
+            if ($request->keterangan_type === 'karyawan') {
+                $keterangan = $request->keterangan;
+                if ($request->filled('keterangan_tambahan')) {
+                    $keterangan = $request->keterangan_tambahan;
+                }
+            } else {
+                $keterangan = $request->keterangan_manual;
+            }
+
             $data = [
-                'Tanggal' => $validated['Tanggal'],
-                'keterangan' => $validated['keterangan'],
+                'Tanggal' => $request->Tanggal,
+                'keterangan' => $keterangan,
             ];
 
             // Proses setiap rekening
-            foreach ($validated['kategori'] as $index => $kategori) {
+            foreach ($request->kategori as $index => $kategori) {
                 $kode = $this->generateKode($kategori);
-                $nominal = str_replace(['.', ','], '', $validated['nominal'][$index]);
+                $nominal = str_replace(['.', ','], '', $request->nominal[$index]);
                 
                 // Set kode dan kategori sesuai urutan
                 $positionIndex = $index === 0 ? '' : ($index + 1);
@@ -44,7 +57,7 @@ class UangMasukController extends Controller
                 $data["kategori" . $positionIndex] = $kategori;
 
                 // Set uang_masuk atau uang_keluar berdasarkan posisi
-                if ($validated['posisi'][$index] === 'debit') {
+                if ($request->posisi[$index] === 'debit') {
                     $data["uang_masuk" . $positionIndex] = $nominal;
                     $data["uang_keluar" . $positionIndex] = null;
                 } else {

@@ -29,13 +29,60 @@
                 <label class="block text-sm font-medium text-gray-700 mb-1">
                     Keterangan <span class="text-red-600">*</span>
                 </label>
-                <textarea 
-                    name="keterangan"
-                    class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
-                    rows="3"
-                    placeholder="Masukkan keterangan transaksi"
-                    required
-                ></textarea>
+                <div class="space-y-2">
+                    <!-- Radio Button untuk memilih input -->
+                    <div class="flex items-center space-x-4">
+                        <label class="flex items-center">
+                            <input type="radio" name="keterangan_type" value="karyawan" checked class="mr-2" onchange="toggleKeteranganInput()">
+                            <span>Pilih Karyawan</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="keterangan_type" value="manual" class="mr-2" onchange="toggleKeteranganInput()">
+                            <span>Input Manual</span>
+                        </label>
+                    </div>
+
+                    <!-- Dropdown Karyawan -->
+                    <div id="karyawanInput">
+                        <div class="space-y-4">
+                            <select 
+                                id="keterangan"
+                                name="keterangan"
+                                class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                required
+                            >
+                                <option value="">Pilih Karyawan</option>
+                                @foreach($karyawans as $karyawan)
+                                    <option value="{{ $karyawan->nama }}" data-gaji="{{ $karyawan->gaji }}">{{ $karyawan->nama }} - {{ $karyawan->jabatan }}</option>
+                                @endforeach
+                            </select>
+
+                            <!-- Input Keterangan Tambahan -->
+                            <div class="form-group">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Keterangan Tambahan
+                                </label>
+                                <textarea 
+                                    name="keterangan_tambahan"
+                                    class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                                    rows="3"
+                                    placeholder="Tambahkan keterangan lain jika diperlukan"
+                                ></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Input Manual -->
+                    <div id="manualInput" class="hidden">
+                        <textarea 
+                            name="keterangan_manual"
+                            class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                            rows="3"
+                            placeholder="Masukkan keterangan"
+                            required
+                        ></textarea>
+                    </div>
+                </div>
             </div>
 
             <!-- Container untuk rekening-rekening -->
@@ -228,6 +275,24 @@
 let rekeningCount = 1;
 const MAX_REKENING = 5;
 
+function toggleKeteranganInput() {
+    const karyawanInput = document.getElementById('karyawanInput');
+    const manualInput = document.getElementById('manualInput');
+    const keteranganType = document.querySelector('input[name="keterangan_type"]:checked').value;
+
+    if (keteranganType === 'karyawan') {
+        karyawanInput.classList.remove('hidden');
+        manualInput.classList.add('hidden');
+        document.getElementById('keterangan').required = true;
+        document.querySelector('textarea[name="keterangan_manual"]').required = false;
+    } else {
+        karyawanInput.classList.add('hidden');
+        manualInput.classList.remove('hidden');
+        document.getElementById('keterangan').required = false;
+        document.querySelector('textarea[name="keterangan_manual"]').required = true;
+    }
+}
+
 function tambahRekening() {
     if (rekeningCount >= MAX_REKENING) {
         Swal.fire({
@@ -318,6 +383,18 @@ document.getElementById('uangMasukForm').addEventListener('submit', function(e) 
         });
         return;
     }
+
+    // Set keterangan berdasarkan input yang dipilih
+    const keteranganType = document.querySelector('input[name="keterangan_type"]:checked').value;
+    if (keteranganType === 'karyawan') {
+        const karyawan = document.getElementById('keterangan').value;
+        const tambahan = document.querySelector('textarea[name="keterangan_tambahan"]').value;
+        document.querySelector('textarea[name="keterangan_manual"]').value = '';
+        document.getElementById('keterangan').value = tambahan ? `${karyawan} - ${tambahan}` : karyawan;
+    } else {
+        const manual = document.querySelector('textarea[name="keterangan_manual"]').value;
+        document.getElementById('keterangan').value = manual;
+    }
 });
 
 // Event listener untuk input nominal
@@ -332,6 +409,18 @@ document.addEventListener('input', function(e) {
 document.addEventListener('change', function(e) {
     if (e.target.name === 'posisi[]') {
         validateBalance();
+    }
+});
+
+document.getElementById('keterangan').addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    const gaji = selectedOption.getAttribute('data-gaji');
+    if (gaji) {
+        const nominalInputs = document.getElementsByName('nominal[]');
+        if (nominalInputs.length > 0) {
+            nominalInputs[0].value = new Intl.NumberFormat('id-ID').format(gaji);
+            validateBalance();
+        }
     }
 });
 
