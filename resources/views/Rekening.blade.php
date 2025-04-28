@@ -98,7 +98,7 @@
                                     <tr class="border-b border-gray-200 hover:bg-gray-50">
                                         <td class="py-3 px-4">{{ date('d/m/Y', strtotime($item->Tanggal)) }}</td>
                                         <td class="py-3 px-4">{{ $item->keterangan }}</td>
-                                        <td class="py-3 px-4 text-center">{{ $item->kode }}</td>
+                                        <td class="py-3 px-4 text-center">-</td>
                                         <td class="py-3 px-4 text-right">
                                             @if($item->debit > 0)
                                                 {{ number_format($item->debit, 0, ',', '.') }}
