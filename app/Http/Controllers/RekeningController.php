@@ -13,16 +13,15 @@ class RekeningController extends Controller
 {
     public function index(Request $request)
     {
-        $query = RekeningModel::query();
+        // Default date range
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+
+        $query = RekeningModel::whereBetween('Tanggal', [$startDate, $endDate]);
 
         // Filter berdasarkan nama akun jika ada
         if ($request->has('periode')) {
             $query->where('kategori', $request->periode);
-        }
-
-        // Filter berdasarkan tanggal jika ada
-        if ($request->has('startDate')) {
-            $query->whereDate('Tanggal', '>=', $request->startDate);
         }
 
         $laporan = $query->orderBy('Tanggal', 'asc')->get();
@@ -103,7 +102,12 @@ class RekeningController extends Controller
             ]);
         }
 
-        return view('Rekening', compact('groupedLaporan', 'totals', 'totalDebit', 'totalKredit', 'saldo'));
+        return view('Rekening', compact('groupedLaporan', 'totals', 'totalDebit', 'totalKredit', 'saldo', 'startDate', 'endDate'));
+    }
+
+    public function filter(Request $request)
+    {
+        return $this->index($request);
     }
 
     private function generateKode($kategori)

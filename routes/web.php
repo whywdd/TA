@@ -70,7 +70,16 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/rekening/{id}', [RekeningController::class, 'destroy'])->name('rekening.destroy');
     Route::get('/rekening/export-excel', [RekeningController::class, 'exportExcel'])->name('rekening.export-excel');
     Route::get('/rekening/export-pdf', [RekeningController::class, 'exportPDF'])->name('rekening.export-pdf');
+    Route::get('/rekening/filter', [RekeningController::class, 'filter'])->name('rekening.filter');
+    
+    // Routes untuk Laporan
+    Route::get('/laporan/filter', [LaporanController::class, 'filter'])->name('laporan.filter');
+    
+    // Routes untuk Neraca Saldo
+    Route::get('/neracasaldo/filter', [NeracasaldoController::class, 'filter'])->name('neracasaldo.filter');
     Route::resource('neracasaldo', NeracasaldoController::class);
+    
+    // Routes untuk Laba Rugi
     Route::get('/labarugi', [LabarugiController::class, 'index'])->name('labarugi.index');
     Route::get('/labarugi/filter', [LabarugiController::class, 'filter'])->name('labarugi.filter');
 });

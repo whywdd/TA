@@ -9,34 +9,47 @@ use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Carbon\Carbon;
 
 class LaporanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $laporan = LaporanModel::orderBy('Tanggal', 'desc')->get();
+        // Default date range
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+
+        $laporan = LaporanModel::whereBetween('Tanggal', [$startDate, $endDate])
+            ->orderBy('Tanggal', 'desc')
+            ->get();
         
         // Hitung total uang masuk (termasuk uang_masuk2-5)
-        $totalUangMasuk = LaporanModel::selectRaw('SUM(uang_masuk) + 
-            COALESCE(SUM(uang_masuk2), 0) + 
-            COALESCE(SUM(uang_masuk3), 0) + 
-            COALESCE(SUM(uang_masuk4), 0) + 
-            COALESCE(SUM(uang_masuk5), 0) as total')
+        $totalUangMasuk = LaporanModel::whereBetween('Tanggal', [$startDate, $endDate])
+            ->selectRaw('SUM(uang_masuk) + 
+                COALESCE(SUM(uang_masuk2), 0) + 
+                COALESCE(SUM(uang_masuk3), 0) + 
+                COALESCE(SUM(uang_masuk4), 0) + 
+                COALESCE(SUM(uang_masuk5), 0) as total')
             ->value('total') ?? 0;
     
         // Hitung total uang keluar (termasuk uang_keluar2-5)
-        $totalUangKeluar = LaporanModel::selectRaw('SUM(uang_keluar) + 
-            COALESCE(SUM(uang_keluar2), 0) + 
-            COALESCE(SUM(uang_keluar3), 0) + 
-            COALESCE(SUM(uang_keluar4), 0) + 
-            COALESCE(SUM(uang_keluar5), 0) as total')
+        $totalUangKeluar = LaporanModel::whereBetween('Tanggal', [$startDate, $endDate])
+            ->selectRaw('SUM(uang_keluar) + 
+                COALESCE(SUM(uang_keluar2), 0) + 
+                COALESCE(SUM(uang_keluar3), 0) + 
+                COALESCE(SUM(uang_keluar4), 0) + 
+                COALESCE(SUM(uang_keluar5), 0) as total')
             ->value('total') ?? 0;
     
-        // Tidak ada lagi kolom gaji, jadi kita menghilangkannya
-        $totalKredit = $totalUangKeluar; // Hanya menggunakan total uang keluar
+        $totalKredit = $totalUangKeluar;
         $saldo = $totalUangMasuk - $totalKredit;
         
-        return view('Laporan', compact('laporan', 'totalUangMasuk', 'totalUangKeluar', 'totalKredit', 'saldo'));
+        return view('Laporan', compact('laporan', 'totalUangMasuk', 'totalUangKeluar', 'totalKredit', 'saldo', 'startDate', 'endDate'));
+    }
+
+    public function filter(Request $request)
+    {
+        return $this->index($request);
     }
 
     public function exportExcel()

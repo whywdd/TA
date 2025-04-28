@@ -4,12 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\NeracasaldoModel;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class NeracasaldoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $rawTransaksis = NeracasaldoModel::orderBy('kode', 'asc')->get();
+        // Default date range
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+
+        $rawTransaksis = NeracasaldoModel::whereBetween('Tanggal', [$startDate, $endDate])
+            ->orderBy('kode', 'asc')
+            ->get();
         $totalsPerAkun = [];
 
         foreach ($rawTransaksis as $transaksi) {
@@ -75,7 +82,12 @@ class NeracasaldoController extends Controller
         // Konversi ke collection setelah selesai
         $transaksis = collect($finalTransaksis);
         
-        return view('Neracasaldo', compact('transaksis'));
+        return view('Neracasaldo', compact('transaksis', 'startDate', 'endDate'));
+    }
+
+    public function filter(Request $request)
+    {
+        return $this->index($request);
     }
 
     public function create()
@@ -125,5 +137,11 @@ class NeracasaldoController extends Controller
 
         return redirect()->route('neracasaldo.index')
             ->with('success', 'Data berhasil dihapus');
+    }
+
+    public function show($id)
+    {
+        $transaksi = NeracasaldoModel::findOrFail($id);
+        return view('neracasaldo.show', compact('transaksi'));
     }
 }

@@ -15,7 +15,22 @@
             <div class="mb-4 bg-blue-600 text-white p-4 rounded-lg shadow-md">
                 <h1 class="text-2xl font-bold">Neraca Saldo Perusahaan Dagang</h1>
                 <p class="text-sm mt-1">Neraca Saldo Budivespaendut</p>
-                <p class="text-sm">Kebun Anggrek</p>
+                <p class="text-sm">Periode: {{ date('F Y', strtotime($startDate)) }}</p>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="mb-4">
+                <form action="{{ route('neracasaldo.filter') }}" method="GET" class="flex items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <span>Tanggal Awal</span>
+                        <input type="date" name="start_date" class="border rounded px-2 py-1" value="{{ $startDate ?? '' }}">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span>Tanggal Akhir</span>
+                        <input type="date" name="end_date" class="border rounded px-2 py-1" value="{{ $endDate ?? '' }}">
+                    </div>
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-1 rounded">Filter</button>
+                </form>
             </div>
 
             <!-- Tabel Transaksi -->

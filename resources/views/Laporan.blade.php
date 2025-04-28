@@ -20,6 +20,22 @@
             <div class="mb-4 bg-blue-600 text-white p-4 rounded-lg shadow-md">
                 <h1 class="text-2xl font-bold">Jurnal Umum</h1>
                 <p class="text-sm mt-1">jurnal umum Budivespaendut.</p>
+                <p class="text-sm">Periode: {{ date('F Y', strtotime($startDate)) }}</p>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="mb-4">
+                <form action="{{ route('laporan.filter') }}" method="GET" class="flex items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <span>Tanggal Awal</span>
+                        <input type="date" name="start_date" class="border rounded px-2 py-1" value="{{ $startDate ?? '' }}">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span>Tanggal Akhir</span>
+                        <input type="date" name="end_date" class="border rounded px-2 py-1" value="{{ $endDate ?? '' }}">
+                    </div>
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-1 rounded">Filter</button>
+                </form>
             </div>
 
             <!-- Summary Cards
@@ -54,7 +70,7 @@
             </div> -->
 
             <!-- Enhanced Filter Section -->
-            <div class="flex flex-wrap gap-4 px-6 py-4 border-b border-gray-200">
+            <!-- <div class="flex flex-wrap gap-4 px-6 py-4 border-b border-gray-200">
                 <form id="filterForm" class="flex flex-wrap gap-4 w-full" onsubmit="applyFilter(event)">
                     <div class="flex items-center">
                         <label for="periode" class="mr-2 text-sm font-medium text-gray-600">Periode:</label>
@@ -91,7 +107,7 @@
                         <i class="fas fa-redo mr-2"></i>Reset
                     </button>
                 </form>
-            </div>
+            </div> -->
 
             <!-- Enhanced Table -->
             <div class="overflow-x-auto">
