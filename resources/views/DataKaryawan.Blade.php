@@ -4,7 +4,7 @@
 <div class="p-6 animate-fade-in">
     <!-- Header -->
     <div class="mb-4 bg-blue-600 text-white p-4 rounded-lg shadow-md">
-        <h1 class="text-2xl font-bold">Data Karyawan</h1>
+        <h1 class="text-2xl font-bold">Tambah Data Karyawan</h1>
         <p class="text-sm mt-1">Formulir untuk menambahkan data karyawan</p>
     </div>
     

@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <div class="mb-4 bg-blue-600 text-white p-4 rounded-lg shadow-md">
-        <h1 class="text-2xl font-bold">Edit Gaji Karyawan</h1>
+        <h1 class="text-2xl font-bold">Edit Data Karyawan</h1>
     </div>
 
     <div class="bg-white rounded-lg shadow-lg p-6">
