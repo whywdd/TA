@@ -5,6 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\NeracasaldoModel;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Exports\NeracaSaldoExport;
 
 class NeracasaldoController extends Controller
 {
@@ -143,5 +148,276 @@ class NeracasaldoController extends Controller
     {
         $transaksi = NeracasaldoModel::findOrFail($id);
         return view('neracasaldo.show', compact('transaksi'));
+    }
+
+    public function exportExcel(Request $request)
+    {
+        try {
+            // Ambil parameter filter tanggal jika ada
+            $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+            $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+
+            $rawTransaksis = NeracasaldoModel::whereBetween('Tanggal', [$startDate, $endDate])
+                ->orderBy('kode', 'asc')
+                ->get();
+            
+            $processedData = [];
+            $totalsPerAkun = [];
+            $totalDebit = 0;
+            $totalKredit = 0;
+
+            // Proses data seperti di fungsi index
+            foreach ($rawTransaksis as $transaksi) {
+                $processAkun = function($kode, $kategori, $debit, $kredit) use (&$totalsPerAkun) {
+                    if (!empty($kode) && !empty($kategori)) {
+                        if (!isset($totalsPerAkun[$kategori])) {
+                            $totalsPerAkun[$kategori] = [
+                                'kode' => $kode,
+                                'kategori' => $kategori,
+                                'debit' => 0,
+                                'kredit' => 0
+                            ];
+                        }
+                        $totalsPerAkun[$kategori]['debit'] += floatval($debit ?? 0);
+                        $totalsPerAkun[$kategori]['kredit'] += floatval($kredit ?? 0);
+                    }
+                };
+
+                $processAkun($transaksi->kode, $transaksi->kategori, $transaksi->uang_masuk, $transaksi->uang_keluar);
+                $processAkun($transaksi->kode2, $transaksi->kategori2, $transaksi->uang_masuk2, $transaksi->uang_keluar2);
+                $processAkun($transaksi->kode3, $transaksi->kategori3, $transaksi->uang_masuk3, $transaksi->uang_keluar3);
+                $processAkun($transaksi->kode4, $transaksi->kategori4, $transaksi->uang_masuk4, $transaksi->uang_keluar4);
+                $processAkun($transaksi->kode5, $transaksi->kategori5, $transaksi->uang_masuk5, $transaksi->uang_keluar5);
+            }
+
+            foreach ($totalsPerAkun as $kategori => $data) {
+                $kodeAwal = substr($data['kode'], 0, 3);
+                $saldo = $data['debit'] - $data['kredit'];
+                
+                if (in_array($kodeAwal, ['111', '112']) || in_array($kodeAwal, ['251', '252'])) {
+                    if ($saldo != 0) {
+                        $processedData[] = [
+                            'kode' => $data['kode'],
+                            'kategori' => $kategori,
+                            'debit' => $saldo > 0 ? abs($saldo) : 0,
+                            'kredit' => $saldo < 0 ? abs($saldo) : 0
+                        ];
+                        $totalDebit += $saldo > 0 ? abs($saldo) : 0;
+                        $totalKredit += $saldo < 0 ? abs($saldo) : 0;
+                    }
+                } else {
+                    if ($saldo != 0) {
+                        $processedData[] = [
+                            'kode' => $data['kode'],
+                            'kategori' => $kategori,
+                            'debit' => $saldo < 0 ? abs($saldo) : 0,
+                            'kredit' => $saldo > 0 ? abs($saldo) : 0
+                        ];
+                        $totalDebit += $saldo < 0 ? abs($saldo) : 0;
+                        $totalKredit += $saldo > 0 ? abs($saldo) : 0;
+                    }
+                }
+            }
+
+            // Tambahkan baris total
+            $processedData[] = [
+                'kode' => '',
+                'kategori' => 'Total',
+                'debit' => $totalDebit,
+                'kredit' => $totalKredit
+            ];
+
+            // Buat class export inline
+            $export = new class($processedData) implements FromCollection, WithHeadings {
+                protected $data;
+                
+                public function __construct($data) 
+                {
+                    $this->data = collect($data);
+                }
+                
+                public function collection()
+                {
+                    return $this->data;
+                }
+
+                public function headings(): array
+                {
+                    return [
+                        'Kode',
+                        'Nama Akun',
+                        'Debit',
+                        'Kredit'
+                    ];
+                }
+            };
+
+            return Excel::download($export, 'neraca-saldo-'.date('Y-m-d').'.xlsx');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal mengekspor Excel: ' . $e->getMessage());
+        }
+    }
+
+    public function exportPDF(Request $request)
+    {
+        try {
+            // Ambil parameter filter tanggal jika ada
+            $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+            $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+
+            $rawTransaksis = NeracasaldoModel::whereBetween('Tanggal', [$startDate, $endDate])
+                ->orderBy('kode', 'asc')
+                ->get();
+            
+            $processedData = [];
+            $totalsPerAkun = [];
+            $totalDebit = 0;
+            $totalKredit = 0;
+
+            // Proses data seperti di fungsi index
+            foreach ($rawTransaksis as $transaksi) {
+                $processAkun = function($kode, $kategori, $debit, $kredit) use (&$totalsPerAkun) {
+                    if (!empty($kode) && !empty($kategori)) {
+                        if (!isset($totalsPerAkun[$kategori])) {
+                            $totalsPerAkun[$kategori] = [
+                                'kode' => $kode,
+                                'kategori' => $kategori,
+                                'debit' => 0,
+                                'kredit' => 0
+                            ];
+                        }
+                        $totalsPerAkun[$kategori]['debit'] += floatval($debit ?? 0);
+                        $totalsPerAkun[$kategori]['kredit'] += floatval($kredit ?? 0);
+                    }
+                };
+
+                $processAkun($transaksi->kode, $transaksi->kategori, $transaksi->uang_masuk, $transaksi->uang_keluar);
+                $processAkun($transaksi->kode2, $transaksi->kategori2, $transaksi->uang_masuk2, $transaksi->uang_keluar2);
+                $processAkun($transaksi->kode3, $transaksi->kategori3, $transaksi->uang_masuk3, $transaksi->uang_keluar3);
+                $processAkun($transaksi->kode4, $transaksi->kategori4, $transaksi->uang_masuk4, $transaksi->uang_keluar4);
+                $processAkun($transaksi->kode5, $transaksi->kategori5, $transaksi->uang_masuk5, $transaksi->uang_keluar5);
+            }
+
+            foreach ($totalsPerAkun as $kategori => $data) {
+                $kodeAwal = substr($data['kode'], 0, 3);
+                $saldo = $data['debit'] - $data['kredit'];
+                
+                if (in_array($kodeAwal, ['111', '112']) || in_array($kodeAwal, ['251', '252'])) {
+                    if ($saldo != 0) {
+                        $processedData[] = [
+                            'kode' => $data['kode'],
+                            'kategori' => $kategori,
+                            'debit' => $saldo > 0 ? abs($saldo) : 0,
+                            'kredit' => $saldo < 0 ? abs($saldo) : 0
+                        ];
+                        $totalDebit += $saldo > 0 ? abs($saldo) : 0;
+                        $totalKredit += $saldo < 0 ? abs($saldo) : 0;
+                    }
+                } else {
+                    if ($saldo != 0) {
+                        $processedData[] = [
+                            'kode' => $data['kode'],
+                            'kategori' => $kategori,
+                            'debit' => $saldo < 0 ? abs($saldo) : 0,
+                            'kredit' => $saldo > 0 ? abs($saldo) : 0
+                        ];
+                        $totalDebit += $saldo < 0 ? abs($saldo) : 0;
+                        $totalKredit += $saldo > 0 ? abs($saldo) : 0;
+                    }
+                }
+            }
+
+            // Generate PDF
+            $html = '
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Neraca Saldo</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        font-size: 12px;
+                    }
+                    h2 {
+                        text-align: center;
+                        margin-bottom: 5px;
+                    }
+                    p.periode {
+                        text-align: center;
+                        margin-top: 0;
+                        margin-bottom: 20px;
+                        font-size: 11px;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 20px;
+                    }
+                    table, th, td {
+                        border: 1px solid #ddd;
+                    }
+                    th, td {
+                        padding: 6px;
+                        text-align: left;
+                        font-size: 10px;
+                    }
+                    th {
+                        background-color: #f2f2f2;
+                        font-weight: bold;
+                    }
+                    .text-right {
+                        text-align: right;
+                    }
+                    tfoot td {
+                        font-weight: bold;
+                        background-color: #f9f9f9;
+                    }
+                </style>
+            </head>
+            <body>
+                <h2>Neraca Saldo</h2>
+                <p class="periode">Periode: ' . date('F Y', strtotime($startDate)) . '</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Kode</th>
+                            <th>Nama Akun</th>
+                            <th class="text-right">Debit</th>
+                            <th class="text-right">Kredit</th>
+                        </tr>
+                    </thead>
+                    <tbody>';
+                    
+                    foreach($processedData as $data) {
+                        if ($data['kategori'] !== 'Total') {
+                            $html .= '
+                            <tr>
+                                <td>'.$data['kode'].'</td>
+                                <td>'.$data['kategori'].'</td>
+                                <td class="text-right">'.($data['debit'] > 0 ? 'Rp '.number_format($data['debit'], 0, ',', '.') : '-').'</td>
+                                <td class="text-right">'.($data['kredit'] > 0 ? 'Rp '.number_format($data['kredit'], 0, ',', '.') : '-').'</td>
+                            </tr>';
+                        }
+                    }
+                    
+                    $html .= '
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="2" class="text-right">Total:</td>
+                            <td class="text-right">Rp '.number_format($totalDebit, 0, ',', '.').'</td>
+                            <td class="text-right">Rp '.number_format($totalKredit, 0, ',', '.').'</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </body>
+            </html>';
+            
+            $pdf = PDF::loadHTML($html);
+            return $pdf->download('neraca-saldo-'.date('Y-m-d').'.pdf');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal mengekspor PDF: ' . $e->getMessage());
+        }
     }
 }

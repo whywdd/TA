@@ -77,6 +77,8 @@ Route::middleware(['auth'])->group(function () {
     
     // Routes untuk Neraca Saldo
     Route::get('/neracasaldo/filter', [NeracasaldoController::class, 'filter'])->name('neracasaldo.filter');
+    Route::get('/neracasaldo/export-excel', [NeracasaldoController::class, 'exportExcel'])->name('neracasaldo.export-excel');
+    Route::get('/neracasaldo/export-pdf', [NeracasaldoController::class, 'exportPDF'])->name('neracasaldo.export-pdf');
     Route::resource('neracasaldo', NeracasaldoController::class);
     
     // Routes untuk Laba Rugi

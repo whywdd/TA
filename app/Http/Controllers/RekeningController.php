@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Response;
 use Carbon\Carbon;
 use PDF;
 use Excel;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class RekeningController extends Controller
 {
@@ -16,6 +18,15 @@ class RekeningController extends Controller
         // Default date range
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+
+        // Pastikan tanggal valid
+        try {
+            $startDate = Carbon::parse($startDate)->format('Y-m-d');
+            $endDate = Carbon::parse($endDate)->format('Y-m-d');
+        } catch (\Exception $e) {
+            $startDate = Carbon::now()->startOfMonth()->format('Y-m-d');
+            $endDate = Carbon::now()->endOfMonth()->format('Y-m-d');
+        }
 
         $query = RekeningModel::whereBetween('Tanggal', [$startDate, $endDate]);
 
@@ -98,7 +109,9 @@ class RekeningController extends Controller
                 'totals' => $totals,
                 'totalDebit' => $totalDebit,
                 'totalKredit' => $totalKredit,
-                'saldo' => $saldo
+                'saldo' => $saldo,
+                'startDate' => $startDate,
+                'endDate' => $endDate
             ]);
         }
 
@@ -309,24 +322,299 @@ class RekeningController extends Controller
         }
     }
 
-    public function exportExcel()
+    public function exportExcel(Request $request)
     {
-        $laporan = RekeningModel::all();
-        $groupedLaporan = $laporan->groupBy('kategori');
-        
-        return Excel::download(function($excel) use ($groupedLaporan) {
-            $excel->sheet('Rekening', function($sheet) use ($groupedLaporan) {
-                $sheet->loadView('exports.rekening-excel', compact('groupedLaporan'));
-            });
-        }, 'rekening-' . Carbon::now()->format('Y-m-d') . '.xlsx');
+        try {
+            // Ambil parameter filter tanggal jika ada
+            $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+            $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+
+            $laporan = RekeningModel::whereBetween('Tanggal', [$startDate, $endDate])->get();
+            $groupedLaporan = collect();
+
+            // Proses data seperti di fungsi index
+            foreach ($laporan as $item) {
+                if (!empty($item->kategori)) {
+                    $kategori = $item->kategori;
+                    if (!isset($groupedLaporan[$kategori])) {
+                        $groupedLaporan[$kategori] = collect();
+                    }
+                    
+                    $groupedLaporan[$kategori]->push((object)[
+                        'Tanggal' => $item->Tanggal,
+                        'keterangan' => $item->keterangan,
+                        'kode' => $this->generateKode($kategori),
+                        'debit' => $item->uang_masuk ?? 0,
+                        'kredit' => $item->uang_keluar ?? 0
+                    ]);
+                }
+                
+                // Proses untuk kategori tambahan (2-5)
+                for ($i = 2; $i <= 5; $i++) {
+                    $kategoriField = "kategori{$i}";
+                    $uangMasukField = "uang_masuk{$i}";
+                    $uangKeluarField = "uang_keluar{$i}";
+                    
+                    if (!empty($item->$kategoriField)) {
+                        $kategori = $item->$kategoriField;
+                        if (!isset($groupedLaporan[$kategori])) {
+                            $groupedLaporan[$kategori] = collect();
+                        }
+                        
+                        $groupedLaporan[$kategori]->push((object)[
+                            'Tanggal' => $item->Tanggal,
+                            'keterangan' => $item->keterangan,
+                            'kode' => $this->generateKode($kategori),
+                            'debit' => $item->$uangMasukField ?? 0,
+                            'kredit' => $item->$uangKeluarField ?? 0
+                        ]);
+                    }
+                }
+            }
+
+            // Buat class export inline
+            $export = new class($groupedLaporan) implements FromCollection, WithHeadings {
+                protected $data;
+                
+                public function __construct($data) 
+                {
+                    $this->data = $data;
+                }
+                
+                public function collection()
+                {
+                    $exportData = collect();
+                    
+                    foreach ($this->data as $kategori => $items) {
+                        // Tambahkan header untuk setiap kategori
+                        $exportData->push([
+                            'Nama Akun: ' . $kategori,
+                            'Kode Akun: ' . ($items->first()->kode ?? '-'),
+                            '', '', '', ''
+                        ]);
+                        
+                        // Tambahkan header kolom
+                        $exportData->push([
+                            'Tanggal',
+                            'Keterangan',
+                            'Ref',
+                            'Debit',
+                            'Kredit',
+                            'Saldo'
+                        ]);
+                        
+                        // Tambahkan data transaksi
+                        $runningBalance = 0;
+                        foreach ($items->sortBy('Tanggal') as $item) {
+                            $accountType = substr($item->kode, 0, 3);
+                            $runningBalance = $this->calculateBalance($runningBalance, $item->debit, $item->kredit, $accountType);
+                            
+                            $exportData->push([
+                                Carbon::parse($item->Tanggal)->format('d/m/Y'),
+                                $item->keterangan,
+                                '-',
+                                $item->debit > 0 ? number_format($item->debit, 0, ',', '.') : '-',
+                                $item->kredit > 0 ? number_format($item->kredit, 0, ',', '.') : '-',
+                                number_format($runningBalance, 0, ',', '.')
+                            ]);
+                        }
+                        
+                        // Tambahkan baris kosong setelah setiap kategori
+                        $exportData->push(['', '', '', '', '', '']);
+                    }
+                    
+                    return $exportData;
+                }
+
+                public function headings(): array
+                {
+                    return []; // Header akan ditangani di dalam collection
+                }
+                
+                private function calculateBalance($previousBalance, $debit, $kredit, $accountType) {
+                    $balance = $previousBalance;
+                    
+                    if (in_array($accountType, ['111', '112']) || in_array($accountType, ['251', '252'])) {
+                        $balance = $balance + $debit - $kredit;
+                    } else {
+                        $balance = $balance - $debit + $kredit;
+                    }
+                    
+                    return $balance;
+                }
+            };
+
+            return Excel::download($export, 'buku-besar-'.date('Y-m-d').'.xlsx');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal mengekspor Excel: ' . $e->getMessage());
+        }
     }
 
-    public function exportPDF()
+    public function exportPDF(Request $request)
     {
-        $laporan = RekeningModel::all();
-        $groupedLaporan = $laporan->groupBy('kategori');
-        $pdf = PDF::loadView('exports.rekening-pdf', compact('groupedLaporan'));
-        
-        return $pdf->download('rekening-' . Carbon::now()->format('Y-m-d') . '.pdf');
+        try {
+            // Ambil parameter filter tanggal jika ada
+            $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+            $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+
+            $laporan = RekeningModel::whereBetween('Tanggal', [$startDate, $endDate])->get();
+            $groupedLaporan = collect();
+
+            // Proses data seperti di fungsi index
+            foreach ($laporan as $item) {
+                if (!empty($item->kategori)) {
+                    $kategori = $item->kategori;
+                    if (!isset($groupedLaporan[$kategori])) {
+                        $groupedLaporan[$kategori] = collect();
+                    }
+                    
+                    $groupedLaporan[$kategori]->push((object)[
+                        'Tanggal' => $item->Tanggal,
+                        'keterangan' => $item->keterangan,
+                        'kode' => $this->generateKode($kategori),
+                        'debit' => $item->uang_masuk ?? 0,
+                        'kredit' => $item->uang_keluar ?? 0
+                    ]);
+                }
+                
+                // Proses untuk kategori tambahan (2-5)
+                for ($i = 2; $i <= 5; $i++) {
+                    $kategoriField = "kategori{$i}";
+                    $uangMasukField = "uang_masuk{$i}";
+                    $uangKeluarField = "uang_keluar{$i}";
+                    
+                    if (!empty($item->$kategoriField)) {
+                        $kategori = $item->$kategoriField;
+                        if (!isset($groupedLaporan[$kategori])) {
+                            $groupedLaporan[$kategori] = collect();
+                        }
+                        
+                        $groupedLaporan[$kategori]->push((object)[
+                            'Tanggal' => $item->Tanggal,
+                            'keterangan' => $item->keterangan,
+                            'kode' => $this->generateKode($kategori),
+                            'debit' => $item->$uangMasukField ?? 0,
+                            'kredit' => $item->$uangKeluarField ?? 0
+                        ]);
+                    }
+                }
+            }
+
+            // Generate PDF
+            $html = '
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Buku Besar</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        font-size: 12px;
+                    }
+                    h2 {
+                        text-align: center;
+                        margin-bottom: 5px;
+                    }
+                    p.periode {
+                        text-align: center;
+                        margin-top: 0;
+                        margin-bottom: 20px;
+                        font-size: 11px;
+                    }
+                    .account-info {
+                        background-color: #f2f2f2;
+                        padding: 8px;
+                        margin-bottom: 10px;
+                        border-radius: 4px;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 20px;
+                        page-break-inside: avoid;
+                    }
+                    table, th, td {
+                        border: 1px solid #ddd;
+                    }
+                    th, td {
+                        padding: 6px;
+                        text-align: left;
+                        font-size: 10px;
+                    }
+                    th {
+                        background-color: #f2f2f2;
+                        font-weight: bold;
+                    }
+                    .text-right {
+                        text-align: right;
+                    }
+                    .text-center {
+                        text-align: center;
+                    }
+                    .page-break {
+                        page-break-after: always;
+                    }
+                </style>
+            </head>
+            <body>
+                <h2>Buku Besar</h2>
+                <p class="periode">Periode: ' . date('F Y', strtotime($startDate)) . '</p>';
+                
+                foreach($groupedLaporan as $kategori => $items) {
+                    $kodeAkun = $items->first()->kode ?? '-';
+                    $html .= '
+                    <div class="account-info">
+                        <strong>Nama Akun:</strong> ' . $kategori . '
+                        <span style="float: right;"><strong>Kode Akun:</strong> ' . $kodeAkun . '</span>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Keterangan</th>
+                                <th class="text-center">Ref</th>
+                                <th class="text-right">Debit</th>
+                                <th class="text-right">Kredit</th>
+                                <th class="text-right">Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody>';
+                        
+                        $runningBalance = 0;
+                        $accountType = substr($kodeAkun, 0, 3);
+                        
+                        foreach($items->sortBy('Tanggal') as $item) {
+                            if (in_array($accountType, ['111', '112']) || in_array($accountType, ['251', '252'])) {
+                                $runningBalance = $runningBalance + $item->debit - $item->kredit;
+                            } else {
+                                $runningBalance = $runningBalance - $item->debit + $item->kredit;
+                            }
+                            
+                            $html .= '
+                            <tr>
+                                <td>' . date('d/m/Y', strtotime($item->Tanggal)) . '</td>
+                                <td>' . $item->keterangan . '</td>
+                                <td class="text-center">-</td>
+                                <td class="text-right">' . ($item->debit > 0 ? number_format($item->debit, 0, ',', '.') : '-') . '</td>
+                                <td class="text-right">' . ($item->kredit > 0 ? number_format($item->kredit, 0, ',', '.') : '-') . '</td>
+                                <td class="text-right">' . number_format($runningBalance, 0, ',', '.') . '</td>
+                            </tr>';
+                        }
+                        
+                        $html .= '
+                        </tbody>
+                    </table>';
+                }
+                
+                $html .= '
+            </body>
+            </html>';
+            
+            $pdf = PDF::loadHTML($html);
+            return $pdf->download('buku-besar-'.date('Y-m-d').'.pdf');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal mengekspor PDF: ' . $e->getMessage());
+        }
     }
 }

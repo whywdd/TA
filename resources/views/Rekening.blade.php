@@ -165,10 +165,10 @@
             <!-- Action Buttons -->
             <div class="flex justify-between items-center mt-4 mb-4">
                 <div class="flex space-x-2">
-                    <a href="{{ route('laporan.export-excel') }}" class="btn bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-md">
+                    <a href="{{ route('rekening.export-excel', ['start_date' => $startDate, 'end_date' => $endDate]) }}" class="btn bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded-md">
                         <i class="fas fa-file-excel mr-2"></i>Export Excel
                     </a>
-                    <a href="{{ route('laporan.export-pdf') }}" class="btn bg-red-500 text-white hover:bg-red-600 px-4 py-2 rounded-md">
+                    <a href="{{ route('rekening.export-pdf', ['start_date' => $startDate, 'end_date' => $endDate]) }}" class="btn bg-red-500 text-white hover:bg-red-600 px-4 py-2 rounded-md">
                         <i class="fas fa-file-pdf mr-2"></i>Export PDF
                     </a>
                     <button onclick="window.print()" class="btn bg-gray-500 text-white hover:bg-gray-600 px-4 py-2 rounded-md">
@@ -181,24 +181,71 @@
 
     <style>
         @media print {
-            .btn, header, footer, .no-print {
+            .btn, header, footer, .no-print, nav, .aside {
                 display: none !important;
             }
             body {
                 padding: 20px;
-                font-size: 14px;
+                font-size: 12px;
             }
             .box {
                 box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            h1.text-2xl {
+                text-align: center;
+                font-size: 20px;
+                margin: 10px 0 5px 0;
+                font-weight: bold;
+            }
+            p.text-sm {
+                text-align: center;
+                margin: 5px 0 20px 0;
+                font-size: 12px;
+            }
+            .account-info {
+                background-color: #f2f2f2 !important;
+                padding: 8px;
+                margin-bottom: 10px;
+                border-radius: 4px;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
             table {
                 width: 100%;
                 border-collapse: collapse;
+                margin-bottom: 20px;
                 page-break-inside: avoid;
+                font-size: 10px !important;
+            }
+            table, th, td {
+                border: 1px solid #000 !important;
             }
             th, td {
-                border: 1px solid #000;
-                padding: 8px;
+                padding: 6px !important;
+            }
+            th {
+                background-color: #f2f2f2 !important;
+                font-weight: bold;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .text-right {
+                text-align: right !important;
+            }
+            .text-center {
+                text-align: center !important;
+            }
+            .bg-blue-600 {
+                background-color: white !important;
+                box-shadow: none !important;
+            }
+            .mb-8 {
+                margin-bottom: 20px !important;
+            }
+            .page-break {
+                page-break-after: always;
             }
         }
     </style>

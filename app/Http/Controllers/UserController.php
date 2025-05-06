@@ -12,14 +12,39 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::all();
-        return view('User', compact('users'));
+        return view('User');
     }
 
-    public function getData()
+    public function getData(Request $request)
     {
-        $users = User::all();
+        $query = User::select('id', 'nama', 'email', 'tipe_pengguna');
+
+        // Apply type filter
+        if ($request->has('type') && !empty($request->type)) {
+            $query->where('tipe_pengguna', $request->type);
+        }
+
+        // Apply search filter
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query->get();
         return response()->json($users);
+    }
+
+    public function show($id)
+    {
+        try {
+            $user = User::findOrFail($id);
+            return response()->json($user);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'User tidak ditemukan'], 404);
+        }
     }
 
     public function create()
@@ -34,22 +59,13 @@ class UserController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:penggunas'],
             'password' => ['required', Password::min(8)->mixedCase()->numbers()],
             'tipe_pengguna' => ['required', 'in:owner,karyawan']
-        ], [
-            'nama.required' => 'Nama harus diisi',
-            'nama.max' => 'Nama maksimal 255 karakter',
-            'email.required' => 'Email harus diisi',
-            'email.email' => 'Format email tidak valid',
-            'email.unique' => 'Email sudah terdaftar',
-            'password.required' => 'Password harus diisi',
-            'password.min' => 'Password minimal 8 karakter',
-            'tipe_pengguna.required' => 'Tipe pengguna harus dipilih',
-            'tipe_pengguna.in' => 'Tipe pengguna tidak valid'
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
         }
 
         try {
@@ -60,12 +76,15 @@ class UserController extends Controller
                 'tipe_pengguna' => $request->tipe_pengguna
             ]);
 
-            return redirect()->route('User.index')
-                ->with('success', 'Akun berhasil ditambahkan!');
+            return response()->json([
+                'success' => true,
+                'message' => 'User berhasil ditambahkan'
+            ]);
         } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Gagal menambahkan akun. ' . $e->getMessage())
-                ->withInput();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menambahkan user: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -82,21 +101,13 @@ class UserController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:penggunas,email,'.$id],
             'password' => ['nullable', Password::min(8)->mixedCase()->numbers()],
             'tipe_pengguna' => ['required', 'in:owner,karyawan']
-        ], [
-            'nama.required' => 'Nama harus diisi',
-            'nama.max' => 'Nama maksimal 255 karakter',
-            'email.required' => 'Email harus diisi',
-            'email.email' => 'Format email tidak valid',
-            'email.unique' => 'Email sudah terdaftar',
-            'password.min' => 'Password minimal 8 karakter',
-            'tipe_pengguna.required' => 'Tipe pengguna harus dipilih',
-            'tipe_pengguna.in' => 'Tipe pengguna tidak valid'
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()->first()
+            ], 422);
         }
 
         try {
@@ -108,19 +119,21 @@ class UserController extends Controller
                 'tipe_pengguna' => $request->tipe_pengguna
             ];
 
-            // Update password hanya jika diisi
             if ($request->filled('password')) {
                 $data['password'] = Hash::make($request->password);
             }
 
             $user->update($data);
 
-            return redirect()->route('User.index')
-                ->with('success', 'Akun berhasil diperbarui!');
+            return response()->json([
+                'success' => true,
+                'message' => 'User berhasil diperbarui'
+            ]);
         } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Gagal memperbarui akun. ' . $e->getMessage())
-                ->withInput();
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memperbarui user: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -130,11 +143,15 @@ class UserController extends Controller
             $user = User::findOrFail($id);
             $user->delete();
 
-            return redirect()->route('User.index')
-                ->with('success', 'Akun berhasil dihapus!');
+            return response()->json([
+                'success' => true,
+                'message' => 'User berhasil dihapus'
+            ]);
         } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Gagal menghapus akun. ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus user: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

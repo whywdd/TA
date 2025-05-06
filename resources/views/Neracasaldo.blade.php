@@ -101,10 +101,10 @@
             <!-- Action Buttons -->
             <div class="flex justify-between items-center mt-4 mb-4">
                 <div class="flex space-x-2">
-                    <a href="{{ route('laporan.export-excel') }}" class="btn bg-green-500 text-white hover:bg-green-600">
+                    <a href="{{ route('neracasaldo.export-excel', ['start_date' => $startDate, 'end_date' => $endDate]) }}" class="btn bg-green-500 text-white hover:bg-green-600">
                         <i class="fas fa-file-excel mr-2"></i>Export Excel
                     </a>
-                    <a href="{{ route('laporan.export-pdf') }}" class="btn bg-red-500 text-white hover:bg-red-600">
+                    <a href="{{ route('neracasaldo.export-pdf', ['start_date' => $startDate, 'end_date' => $endDate]) }}" class="btn bg-red-500 text-white hover:bg-red-600">
                         <i class="fas fa-file-pdf mr-2"></i>Export PDF
                     </a>
                     <button onclick="window.print()" class="btn bg-gray-500 text-white hover:bg-gray-600">
@@ -112,4 +112,73 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Style untuk print -->
+            <style>
+                @media print {
+                    .btn, header, footer, .no-print, nav, .aside, #prevPage, #nextPage, #rowsPerPage {
+                        display: none !important;
+                    }
+                    body {
+                        padding: 20px;
+                        font-size: 12px;
+                        background-color: white !important;
+                    }
+                    .box, .p-4, .intro-y {
+                        padding: 0 !important;
+                        margin: 0 !important;
+                        background-color: white !important;
+                    }
+                    .bg-gray-100 {
+                        background-color: white !important;
+                    }
+                    h1.text-2xl {
+                        text-align: center;
+                        font-size: 20px;
+                        margin: 10px 0 5px 0;
+                        font-weight: bold;
+                    }
+                    p.text-sm {
+                        text-align: center;
+                        margin: 5px 0 20px 0;
+                        font-size: 12px;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse !important;
+                        margin-bottom: 20px;
+                        font-size: 10px !important;
+                    }
+                    table th,
+                    table td {
+                        border: 1px solid #000 !important;
+                        padding: 6px !important;
+                    }
+                    table th {
+                        text-align: left;
+                        background-color: #f2f2f2 !important;
+                        font-weight: bold;
+                        -webkit-print-color-adjust: exact;
+                        color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    table td:nth-child(3),
+                    table td:nth-child(4),
+                    table th:nth-child(3),
+                    table th:nth-child(4) {
+                        text-align: right !important;
+                    }
+                    table tr:last-child td {
+                        font-weight: bold !important;
+                        background-color: #f9f9f9 !important;
+                        -webkit-print-color-adjust: exact;
+                        color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    .bg-blue-600 {
+                        background-color: white !important;
+                        box-shadow: none !important;
+                    }
+                }
+            </style>
 @endsection
