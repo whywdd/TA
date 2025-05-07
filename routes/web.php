@@ -84,4 +84,6 @@ Route::middleware(['auth'])->group(function () {
     // Routes untuk Laba Rugi
     Route::get('/labarugi', [LabarugiController::class, 'index'])->name('labarugi.index');
     Route::get('/labarugi/filter', [LabarugiController::class, 'filter'])->name('labarugi.filter');
+    Route::get('/labarugi/export-excel', [LabarugiController::class, 'exportExcel'])->name('labarugi.export-excel');
+    Route::get('/labarugi/export-pdf', [LabarugiController::class, 'exportPDF'])->name('labarugi.export-pdf');
 });

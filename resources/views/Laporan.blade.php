@@ -121,7 +121,7 @@
                             <th class="py-3 px-4 text-left">Keterangan</th>
                             <th class="py-3 px-4 text-right">Debit</th>
                             <th class="py-3 px-4 text-right">Kredit</th>
-                            <th class="py-3 px-4 text-center">Aksi</th>
+                            <th class="py-3 px-4 text-center aksi-col">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -310,7 +310,7 @@
                                         @endif
                                     </div>
                                 </td>
-                                <td class="py-3 px-4 text-center">
+                                <td class="py-3 px-4 text-center aksi-col">
                                     <div class="flex justify-center space-x-2">
                                         <!-- <button class="text-blue-600 hover:text-blue-800" title="Edit">
                                             <i class="fas fa-edit"></i> -->
@@ -452,6 +452,9 @@
                     }
                     .ml-8 {
                         margin-left: 8px !important;
+                    }
+                    .aksi-col, .aksi-col * {
+                        display: none !important;
                     }
                 }
             </style>

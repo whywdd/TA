@@ -1,6 +1,10 @@
 @extends('Core.Sidebar')
 
 @section('content')
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
 <style>
 .chart-container {
     position: relative;
@@ -192,18 +196,128 @@
   <!-- Charts Section -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
     <!-- Bar Chart -->
-    <div class="bg-white p-6 rounded-xl shadow-sm">
-      <h4 class="text-lg font-semibold text-gray-700 mb-4">Tren Pendapatan & Beban</h4>
+    <div class="max-w-sm w-full bg-white rounded-lg shadow-sm dark:bg-gray-800 p-4 md:p-6">
+      <div class="flex justify-between">
+        <div>
+          <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">
+            @if($labaRugiTotal < 0)
+              -Rp {{ number_format(abs($labaRugiTotal), 0, ',', '.') }}
+            @else
+              Rp {{ number_format($labaRugiTotal, 0, ',', '.') }}
+            @endif
+          </h5>
+          <p class="text-base font-normal text-gray-500 dark:text-gray-400">Laba/Rugi Total</p>
+        </div>
+        <div class="flex items-center px-2.5 py-0.5 text-base font-semibold {{ $growthPercentage >= 0 ? 'text-green-500' : 'text-red-500' }} dark:text-green-500 text-center">
+          {{ number_format($growthPercentage, 1) }}%
+          <svg class="w-3 h-3 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13V1m0 0L1 5m4-4 4 4"/>
+          </svg>
+        </div>
+      </div>
       <div class="chart-container">
         <canvas id="financial-trend-chart"></canvas>
+      </div>
+      <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between">
+        <div class="flex justify-between items-center pt-5">
+          <!-- Button -->
+          <button
+            id="dropdownDefaultButton"
+            data-dropdown-toggle="lastDaysdropdown"
+            data-dropdown-placement="bottom"
+            class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
+            type="button">
+            {{ date('d/m/Y', strtotime($startDate)) }} - {{ date('d/m/Y', strtotime($endDate)) }}
+            <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+            </svg>
+          </button>
+          <!-- Dropdown menu -->
+          <div id="lastDaysdropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700">
+            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
+              <li>
+                <a href="{{ route('home.filter', ['start_date' => Carbon\Carbon::yesterday()->format('Y-m-d'), 'end_date' => Carbon\Carbon::yesterday()->format('Y-m-d')]) }}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Kemarin</a>
+              </li>
+              <li>
+                <a href="{{ route('home.filter', ['start_date' => Carbon\Carbon::today()->format('Y-m-d'), 'end_date' => Carbon\Carbon::today()->format('Y-m-d')]) }}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Hari Ini</a>
+              </li>
+              <li>
+                <a href="{{ route('home.filter', ['start_date' => Carbon\Carbon::now()->subDays(7)->format('Y-m-d'), 'end_date' => Carbon\Carbon::now()->format('Y-m-d')]) }}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">7 Hari Terakhir</a>
+              </li>
+              <li>
+                <a href="{{ route('home.filter', ['start_date' => Carbon\Carbon::now()->subDays(30)->format('Y-m-d'), 'end_date' => Carbon\Carbon::now()->format('Y-m-d')]) }}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">30 Hari Terakhir</a>
+              </li>
+              <li>
+                <a href="{{ route('home.filter', ['start_date' => Carbon\Carbon::now()->subDays(90)->format('Y-m-d'), 'end_date' => Carbon\Carbon::now()->format('Y-m-d')]) }}" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">90 Hari Terakhir</a>
+              </li>
+            </ul>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="updateChartType('line')" class="text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white px-3 py-1 rounded-lg bg-gray-100 dark:bg-gray-700">Garis</button>
+            <button onclick="updateChartType('bar')" class="text-sm font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white px-3 py-1 rounded-lg">Bar</button>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Category Chart -->
-    <div class="bg-white p-6 rounded-xl shadow-sm">
-      <h4 class="text-lg font-semibold text-gray-700 mb-4">Distribusi per Kategori</h4>
-      <div class="chart-container">
-        <canvas id="category-distribution-chart"></canvas>
+    <div class="max-w-sm w-full bg-white rounded-lg shadow-sm dark:bg-gray-800 p-4 md:p-6">
+      <div class="flex flex-col w-full">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center">
+            <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white">Distribusi Neraca Saldo</h5>
+            <svg data-popover-target="chart-info" data-popover-placement="bottom" class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z"/>
+            </svg>
+          </div>
+          <button id="dateRangeButton" data-dropdown-toggle="dateRangeDropdown" data-dropdown-ignore-click-outside-class="datepicker" type="button" class="inline-flex items-center text-blue-700 dark:text-blue-600 font-medium hover:underline">
+            {{ date('d M', strtotime($startDate)) }} - {{ date('d M', strtotime($endDate)) }}
+            <svg class="w-3 h-3 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+            </svg>
+          </button>
+        </div>
+        <div class="flex flex-col items-center justify-center py-4">
+          <div class="chart-container" style="height: 260px; width: 260px;">
+            <canvas id="category-distribution-chart"></canvas>
+          </div>
+        </div>
+        <div class="flex flex-wrap justify-center gap-4 mt-4">
+          @php
+            $pieColors = ['#FF5733','#33FF57','#3357FF','#FF33A1','#FFBD33','#10b981','#f472b6','#6366f1','#f59e42','#e11d48'];
+          @endphp
+          @foreach($pieLabels as $i => $label)
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 rounded-full" style="background: {{ $pieColors[$i % count($pieColors)] }}"></span>
+              <span class="text-sm">{{ $label }}</span>
+            </div>
+          @endforeach
+        </div>
+        <div class="flex justify-between items-center border-t border-gray-200 dark:border-gray-700 mt-6 pt-4">
+          <div class="flex items-center">
+            <button id="dropdownDefaultButton" data-dropdown-toggle="lastDaysdropdown" data-dropdown-placement="bottom" class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white" type="button">
+              Last 7 days
+              <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+              </svg>
+            </button>
+            <div id="lastDaysdropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700">
+              <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
+                <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Kemarin</a></li>
+                <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Hari Ini</a></li>
+                <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">7 Hari Terakhir</a></li>
+                <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">30 Hari Terakhir</a></li>
+                <li><a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">90 Hari Terakhir</a></li>
+              </ul>
+            </div>
+          </div>
+          <a href="#" class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
+            LAPORAN KATEGORI
+            <svg class="w-2.5 h-2.5 ms-1.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+              <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+            </svg>
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -254,11 +368,13 @@
   </div>
 </div>
 
-@push('scripts')
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script>
+// Debugging untuk memastikan script berjalan
+console.log('Script started');
+
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded');
+    
     // Format number to Rupiah
     function formatRupiah(number) {
         return 'Rp ' + number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -270,39 +386,36 @@ document.addEventListener('DOMContentLoaded', function() {
         if (trendCtx) {
             const monthlyData = @json($monthlyTotals);
             const labels = monthlyData.map(item => {
-                const [year, month] = item.periode.split('-');
-                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'];
-                return `${monthNames[parseInt(month)-1]} ${year}`;
+                const date = new Date(item.periode);
+                return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
             });
             const pendapatanData = monthlyData.map(item => parseFloat(item.total_debit) || 0);
             const bebanData = monthlyData.map(item => parseFloat(item.total_kredit) || 0);
 
-            new Chart(trendCtx, {
-                type: 'bar',
+            // Create gradient for area fill
+            const gradientFill = trendCtx.getContext('2d').createLinearGradient(0, 0, 0, 400);
+            gradientFill.addColorStop(0, 'rgba(34, 197, 94, 0.2)');
+            gradientFill.addColorStop(1, 'rgba(34, 197, 94, 0)');
+
+            window.trendChart = new Chart(trendCtx, {
+                type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
                         label: 'Pendapatan',
                         data: pendapatanData,
-                        backgroundColor: 'rgba(34, 197, 94, 0.5)',
                         borderColor: 'rgb(34, 197, 94)',
-                        borderWidth: 1,
-                        order: 2
-                    }, {
-                        label: 'Beban',
-                        data: bebanData,
-                        backgroundColor: 'rgba(239, 68, 68, 0.5)',
-                        borderColor: 'rgb(239, 68, 68)',
-                        borderWidth: 1,
-                        order: 2
-                    }, {
-                        label: 'Laba/Rugi',
-                        data: pendapatanData.map((pendapatan, index) => pendapatan - bebanData[index]),
-                        type: 'line',
-                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: gradientFill,
+                        fill: true,
+                        tension: 0.4,
                         borderWidth: 2,
-                        fill: false,
-                        order: 1
+                        pointRadius: 0,
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: 'rgb(34, 197, 94)',
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2,
+                        cubicInterpolationMode: 'monotone',
+                        stepped: false
                     }]
                 },
                 options: {
@@ -312,89 +425,127 @@ document.addEventListener('DOMContentLoaded', function() {
                         intersect: false,
                         mode: 'index'
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return formatRupiah(value);
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + formatRupiah(context.parsed.y);
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Category Distribution Chart
-        const categoryCtx = document.getElementById('category-distribution-chart');
-        if (categoryCtx) {
-            const categoryData = @json($categoryTotals);
-            const categories = categoryData.map(item => item.kategori);
-            const pendapatanPerKategori = categoryData.map(item => parseFloat(item.total_debit) || 0);
-            const bebanPerKategori = categoryData.map(item => parseFloat(item.total_kredit) || 0);
-
-            new Chart(categoryCtx, {
-                type: 'bar',
-                data: {
-                    labels: categories,
-                    datasets: [{
-                        label: 'Pendapatan',
-                        data: pendapatanPerKategori,
-                        backgroundColor: 'rgba(34, 197, 94, 0.5)',
-                        borderColor: 'rgb(34, 197, 94)',
-                        borderWidth: 1
-                    }, {
-                        label: 'Beban',
-                        data: bebanPerKategori,
-                        backgroundColor: 'rgba(239, 68, 68, 0.5)',
-                        borderColor: 'rgb(239, 68, 68)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    indexAxis: 'y',
-                    scales: {
-                        x: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return formatRupiah(value);
-                                }
-                            }
-                        }
-                    },
                     plugins: {
                         legend: {
-                            position: 'bottom'
+                            display: false
                         },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return context.dataset.label + ': ' + formatRupiah(context.parsed.x);
+                                    const value = context.parsed.y;
+                                    return formatRupiah(value);
+                                },
+                                title: function(context) {
+                                    return `Tanggal: ${context[0].label}`;
                                 }
+                            },
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            padding: 12,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
                             }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                display: false
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                },
+                                maxRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 7
+                            }
+                        }
+                    },
+                    elements: {
+                        line: {
+                            tension: 0.4
                         }
                     }
                 }
             });
+
+            // Debug untuk memastikan data terisi
+            console.log('Chart Data:', {
+                labels: labels,
+                data: pendapatanData
+            });
         }
+
+        // Pie Chart Neraca Saldo
+        var ctx = document.getElementById('category-distribution-chart').getContext('2d');
+        var pieLabels = @json($pieLabels);
+        var pieData = @json($pieData);
+        var pieColors = [
+            '#FF5733','#33FF57','#3357FF','#FF33A1','#FFBD33','#10b981','#f472b6','#6366f1','#f59e42','#e11d48'
+        ];
+        var total = pieData.reduce((a, b) => a + b, 0);
+        var myPieChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: pieLabels,
+                datasets: [{
+                    data: pieData,
+                    backgroundColor: pieColors,
+                    borderColor: '#fff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        color: '#fff',
+                        font: { weight: 'bold', size: 16 },
+                        formatter: function(value) {
+                            var percent = total ? (value / total * 100) : 0;
+                            return percent.toFixed(1) + '%';
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                var label = context.label || '';
+                                var value = context.parsed || 0;
+                                var percent = total ? (value / total * 100) : 0;
+                                return label + ': ' + value.toLocaleString('id-ID', {style:'currency', currency:'IDR'}) + ' (' + percent.toFixed(1) + '%)';
+                            }
+                        }
+                    }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
     } catch (error) {
         console.error('Error creating charts:', error);
     }
 });
+
+// Function to update chart type
+function updateChartType(type) {
+    if (window.trendChart) {
+        window.trendChart.config.type = type;
+        window.trendChart.update();
+    }
+}
 </script>
-@endpush
 
 @endsection

@@ -60,7 +60,7 @@
                     </tr>
                     @foreach($pendapatan as $item)
                     <tr class="border-b border-gray-300">
-                        <td class="p-2 border border-gray-300 pl-8">{{ ucwords($item['kategori']) }} ({{ $item['kode_akun'] }})</td>
+                        <td class="p-2 border border-gray-300 pl-8">{{ ucwords($item['kategori']) }}</td>
                         <td class="text-right p-2 border border-gray-300">
                             {{ number_format(abs($item['nominal']), 0, ',', '.') }}
                         </td>
@@ -77,7 +77,7 @@
                     </tr>
                     @foreach($beban as $item)
                     <tr class="border-b border-gray-300">
-                        <td class="p-2 border border-gray-300 pl-8">{{ ucwords($item['kategori']) }} ({{ $item['kode_akun'] }})</td>
+                        <td class="p-2 border border-gray-300 pl-8">{{ ucwords($item['kategori']) }}</td>
                         <td class="text-right p-2 border border-gray-300">
                             {{ number_format(abs($item['nominal']), 0, ',', '.') }}
                         </td>
@@ -104,6 +104,84 @@
                     </tr>
                 </table>
             </div>
+
+            <!-- Action Buttons -->
+            <div class="flex justify-between items-center mt-4 mb-4">
+                <div class="flex space-x-2">
+                    <a href="{{ route('labarugi.export-excel', ['start_date' => $startDate, 'end_date' => $endDate]) }}" class="btn bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded">
+                        <i class="fas fa-file-excel mr-2"></i>Export Excel
+                    </a>
+                    <a href="{{ route('labarugi.export-pdf', ['start_date' => $startDate, 'end_date' => $endDate]) }}" class="btn bg-red-500 text-white hover:bg-red-600 px-4 py-2 rounded">
+                        <i class="fas fa-file-pdf mr-2"></i>Export PDF
+                    </a>
+                    <button onclick="window.print()" class="btn bg-gray-500 text-white hover:bg-gray-600 px-4 py-2 rounded">
+                        <i class="fas fa-print mr-2"></i>Print
+                    </button>
+                </div>
+            </div>
+
+            <!-- Style untuk print -->
+            <style>
+                @media print {
+                    .btn, header, footer, .no-print, nav, .aside {
+                        display: none !important;
+                    }
+                    body {
+                        padding: 20px;
+                        font-size: 12px;
+                        background-color: white !important;
+                    }
+                    .box, .p-4, .intro-y {
+                        padding: 0 !important;
+                        margin: 0 !important;
+                        background-color: white !important;
+                    }
+                    .bg-gray-100 {
+                        background-color: white !important;
+                    }
+                    h1.text-2xl {
+                        text-align: center;
+                        font-size: 20px;
+                        margin: 10px 0 5px 0;
+                        font-weight: bold;
+                    }
+                    p.text-sm {
+                        text-align: center;
+                        margin: 5px 0 20px 0;
+                        font-size: 12px;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse !important;
+                        margin-bottom: 20px;
+                    }
+                    table, th, td {
+                        border: 1px solid #000 !important;
+                    }
+                    th {
+                        background-color: #6b46c1 !important;
+                        color: white !important;
+                        -webkit-print-color-adjust: exact;
+                        color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    .text-right {
+                        text-align: right !important;
+                    }
+                    .bg-purple-100 {
+                        background-color: #f3e8ff !important;
+                        -webkit-print-color-adjust: exact;
+                        color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    .bg-gray-100 {
+                        background-color: #f3f4f6 !important;
+                        -webkit-print-color-adjust: exact;
+                        color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                }
+            </style>
         </div>
     </div>
 @endsection

@@ -52,54 +52,117 @@ class LaporanController extends Controller
         return $this->index($request);
     }
 
-    public function exportExcel()
+    public function exportExcel(Request $request)
     {
         try {
-            // Buat class export inline
-            $export = new class implements FromCollection, WithHeadings, WithMapping {
-                public function collection()
-                {
-                    return LaporanModel::orderBy('Tanggal', 'desc')->get();
+            $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+            $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+            $laporan = LaporanModel::whereBetween('Tanggal', [$startDate, $endDate])
+                ->orderBy('Tanggal', 'desc')
+                ->get();
+
+            $rows = [];
+            $no = 1;
+            $totalDebit = 0;
+            $totalKredit = 0;
+
+            foreach ($laporan as $item) {
+                // Cek apakah semua nilai adalah debit
+                $allDebit = true;
+                $debitValues = [
+                    $item->uang_masuk,
+                    $item->uang_masuk2,
+                    $item->uang_masuk3,
+                    $item->uang_masuk4,
+                    $item->uang_masuk5
+                ];
+                
+                $validDebitValues = array_filter($debitValues, function($value) {
+                    return $value !== null && $value > 0;
+                });
+
+                if ($item->uang_keluar > 0 || 
+                    ($item->uang_keluar2 ?? 0) > 0 || 
+                    ($item->uang_keluar3 ?? 0) > 0 || 
+                    ($item->uang_keluar4 ?? 0) > 0 || 
+                    ($item->uang_keluar5 ?? 0) > 0) {
+                    $allDebit = false;
                 }
 
-                public function headings(): array
-                {
-                    return [
-                        'ID',
-                        'Tanggal',
-                        'Kode',
-                        'Kategori',
-                        'Keterangan',
-                        'Uang Masuk',
-                        'Uang Keluar'
-                    ];
+                // Proses data untuk setiap baris
+                $rowDebit = 0;
+                $rowKredit = 0;
+
+                if ($allDebit) {
+                    $lastDebitValue = end($validDebitValues);
+                    $firstDebitValue = reset($validDebitValues);
+                    
+                    if (count($validDebitValues) > 1) {
+                        $rowDebit = $firstDebitValue;
+                        $rowKredit = $lastDebitValue;
+                    } else {
+                        $rowDebit = $firstDebitValue;
+                        $rowKredit = $firstDebitValue;
+                    }
+                } else {
+                    $rowDebit = $item->uang_masuk + 
+                              ($item->uang_masuk2 ?? 0) + 
+                              ($item->uang_masuk3 ?? 0) + 
+                              ($item->uang_masuk4 ?? 0) + 
+                              ($item->uang_masuk5 ?? 0);
+                              
+                    $rowKredit = $item->uang_keluar + 
+                               ($item->uang_keluar2 ?? 0) + 
+                               ($item->uang_keluar3 ?? 0) + 
+                               ($item->uang_keluar4 ?? 0) + 
+                               ($item->uang_keluar5 ?? 0);
                 }
 
-                public function map($laporan): array
-                {
-                    // Hitung total uang masuk untuk baris ini
-                    $totalUangMasuk = $laporan->uang_masuk +
-                        ($laporan->uang_masuk2 ?? 0) +
-                        ($laporan->uang_masuk3 ?? 0) +
-                        ($laporan->uang_masuk4 ?? 0) +
-                        ($laporan->uang_masuk5 ?? 0);
+                $totalDebit += $rowDebit;
+                $totalKredit += $rowKredit;
 
-                    // Hitung total uang keluar untuk baris ini
-                    $totalUangKeluar = $laporan->uang_keluar +
-                        ($laporan->uang_keluar2 ?? 0) +
-                        ($laporan->uang_keluar3 ?? 0) +
-                        ($laporan->uang_keluar4 ?? 0) +
-                        ($laporan->uang_keluar5 ?? 0);
+                // Gabungkan semua kode akun
+                $kodeAkun = $item->kode;
+                if (!empty($item->kode2)) $kodeAkun .= "\n" . $item->kode2;
+                if (!empty($item->kode3)) $kodeAkun .= "\n" . $item->kode3;
+                if (!empty($item->kode4)) $kodeAkun .= "\n" . $item->kode4;
+                if (!empty($item->kode5)) $kodeAkun .= "\n" . $item->kode5;
 
-                    return [
-                        $laporan->id,
-                        $laporan->Tanggal,
-                        $laporan->kode,
-                        $laporan->kategori,
-                        $laporan->keterangan,
-                        $totalUangMasuk,
-                        $totalUangKeluar
-                    ];
+                // Gabungkan semua nama akun
+                $namaAkun = $item->kategori;
+                if (!empty($item->kategori2)) $namaAkun .= "\n" . $item->kategori2;
+                if (!empty($item->kategori3)) $namaAkun .= "\n" . $item->kategori3;
+                if (!empty($item->kategori4)) $namaAkun .= "\n" . $item->kategori4;
+                if (!empty($item->kategori5)) $namaAkun .= "\n" . $item->kategori5;
+
+                $rows[] = [
+                    'No' => $no++,
+                    'Tanggal' => date('d/m/Y', strtotime($item->Tanggal)),
+                    'Kode Akun' => $kodeAkun,
+                    'Nama Akun' => $namaAkun,
+                    'Keterangan' => $item->keterangan . ' ' . $item->nama_karyawan,
+                    'Debit' => $rowDebit > 0 ? number_format($rowDebit, 0, ',', '.') : '-',
+                    'Kredit' => $rowKredit > 0 ? number_format($rowKredit, 0, ',', '.') : '-'
+                ];
+            }
+
+            // Tambahkan baris total
+            $rows[] = [
+                'No' => '',
+                'Tanggal' => '',
+                'Kode Akun' => '',
+                'Nama Akun' => '',
+                'Keterangan' => 'Total',
+                'Debit' => number_format($totalDebit, 0, ',', '.'),
+                'Kredit' => number_format($totalKredit, 0, ',', '.')
+            ];
+
+            $export = new class($rows) implements FromCollection, WithHeadings {
+                protected $rows;
+                public function __construct($rows) { $this->rows = $rows; }
+                public function collection() { return collect($this->rows); }
+                public function headings(): array {
+                    return ['No', 'Tanggal', 'Kode Akun', 'Nama Akun', 'Keterangan', 'Debit', 'Kredit'];
                 }
             };
 
@@ -109,132 +172,132 @@ class LaporanController extends Controller
         }
     }
     
-    public function exportPDF()
+    public function exportPDF(Request $request)
     {
         try {
-            $laporan = LaporanModel::orderBy('Tanggal', 'desc')->get();
-            
-            // Hitung total uang masuk
-            $totalUangMasuk = LaporanModel::selectRaw('SUM(uang_masuk) + 
-                COALESCE(SUM(uang_masuk2), 0) + 
-                COALESCE(SUM(uang_masuk3), 0) + 
-                COALESCE(SUM(uang_masuk4), 0) + 
-                COALESCE(SUM(uang_masuk5), 0) as total')
-                ->value('total') ?? 0;
+            $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+            $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
+            $laporan = LaporanModel::whereBetween('Tanggal', [$startDate, $endDate])
+                ->orderBy('Tanggal', 'desc')
+                ->get();
 
-            // Hitung total uang keluar
-            $totalKredit = LaporanModel::selectRaw('SUM(uang_keluar) + 
-                COALESCE(SUM(uang_keluar2), 0) + 
-                COALESCE(SUM(uang_keluar3), 0) + 
-                COALESCE(SUM(uang_keluar4), 0) + 
-                COALESCE(SUM(uang_keluar5), 0) as total')
-                ->value('total') ?? 0;
+            $rows = '';
+            $no = 1;
+            $totalDebit = 0;
+            $totalKredit = 0;
 
-            $saldo = $totalUangMasuk - $totalKredit;
-            
-            // Generate PDF
-            $html = '
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Laporan Keuangan</title>
-                <style>
-                    body {
-                        font-family: Arial, sans-serif;
-                        font-size: 12px;
-                    }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin-bottom: 20px;
-                    }
-                    table, th, td {
-                        border: 1px solid #ddd;
-                    }
-                    th, td {
-                        padding: 8px;
-                        text-align: left;
-                    }
-                    th {
-                        background-color: #f2f2f2;
-                    }
-                    .summary {
-                        margin-top: 20px;
-                    }
-                    .summary table {
-                        width: 300px;
-                    }
-                </style>
-            </head>
-            <body>
-                <h2>Laporan Keuangan</h2>
-                <p>Tanggal: '.date('d-m-Y').'</p>
+            foreach ($laporan as $item) {
+                // Cek apakah semua nilai adalah debit
+                $allDebit = true;
+                $debitValues = [
+                    $item->uang_masuk,
+                    $item->uang_masuk2,
+                    $item->uang_masuk3,
+                    $item->uang_masuk4,
+                    $item->uang_masuk5
+                ];
                 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Tanggal</th>
-                            <th>Kode</th>
-                            <th>Kategori</th>
-                            <th>Keterangan</th>
-                            <th>Uang Masuk</th>
-                            <th>Uang Keluar</th>
-                        </tr>
-                    </thead>
-                    <tbody>';
+                $validDebitValues = array_filter($debitValues, function($value) {
+                    return $value !== null && $value > 0;
+                });
+
+                if ($item->uang_keluar > 0 || 
+                    ($item->uang_keluar2 ?? 0) > 0 || 
+                    ($item->uang_keluar3 ?? 0) > 0 || 
+                    ($item->uang_keluar4 ?? 0) > 0 || 
+                    ($item->uang_keluar5 ?? 0) > 0) {
+                    $allDebit = false;
+                }
+
+                // Proses data untuk setiap baris
+                $rowDebit = 0;
+                $rowKredit = 0;
+
+                if ($allDebit) {
+                    $lastDebitValue = end($validDebitValues);
+                    $firstDebitValue = reset($validDebitValues);
                     
-                    foreach($laporan as $index => $item) {
-                        // Hitung total uang masuk untuk baris ini
-                        $rowUangMasuk = $item->uang_masuk +
-                            ($item->uang_masuk2 ?? 0) +
-                            ($item->uang_masuk3 ?? 0) +
-                            ($item->uang_masuk4 ?? 0) +
-                            ($item->uang_masuk5 ?? 0);
-
-                        // Hitung total uang keluar untuk baris ini
-                        $rowUangKeluar = $item->uang_keluar +
-                            ($item->uang_keluar2 ?? 0) +
-                            ($item->uang_keluar3 ?? 0) +
-                            ($item->uang_keluar4 ?? 0) +
-                            ($item->uang_keluar5 ?? 0);
-
-                        $html .= '
-                        <tr>
-                            <td>'.($index + 1).'</td>
-                            <td>'.$item->Tanggal.'</td>
-                            <td>'.$item->kode.'</td>
-                            <td>'.$item->kategori.'</td>
-                            <td>'.$item->keterangan.'</td>
-                            <td>Rp '.number_format($rowUangMasuk, 0, ',', '.').'</td>
-                            <td>Rp '.number_format($rowUangKeluar, 0, ',', '.').'</td>
-                        </tr>';
+                    if (count($validDebitValues) > 1) {
+                        $rowDebit = $firstDebitValue;
+                        $rowKredit = $lastDebitValue;
+                    } else {
+                        $rowDebit = $firstDebitValue;
+                        $rowKredit = $firstDebitValue;
                     }
-                    
-                    $html .= '
-                    </tbody>
-                </table>
-                
-                <div class="summary">
-                    <h3>Ringkasan</h3>
-                    <table>
-                        <tr>
-                            <td><strong>Total Uang Masuk</strong></td>
-                            <td>Rp '.number_format($totalUangMasuk, 0, ',', '.').'</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Total Uang Keluar</strong></td>
-                            <td>Rp '.number_format($totalKredit, 0, ',', '.').'</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Saldo</strong></td>
-                            <td>Rp '.number_format($saldo, 0, ',', '.').'</td>
-                        </tr>
-                    </table>
-                </div>
-            </body>
-            </html>';
-            
+                } else {
+                    $rowDebit = $item->uang_masuk + 
+                              ($item->uang_masuk2 ?? 0) + 
+                              ($item->uang_masuk3 ?? 0) + 
+                              ($item->uang_masuk4 ?? 0) + 
+                              ($item->uang_masuk5 ?? 0);
+                              
+                    $rowKredit = $item->uang_keluar + 
+                               ($item->uang_keluar2 ?? 0) + 
+                               ($item->uang_keluar3 ?? 0) + 
+                               ($item->uang_keluar4 ?? 0) + 
+                               ($item->uang_keluar5 ?? 0);
+                }
+
+                $totalDebit += $rowDebit;
+                $totalKredit += $rowKredit;
+
+                // Gabungkan semua kode akun
+                $kodeAkun = $item->kode;
+                if (!empty($item->kode2)) $kodeAkun .= "<br>" . $item->kode2;
+                if (!empty($item->kode3)) $kodeAkun .= "<br>" . $item->kode3;
+                if (!empty($item->kode4)) $kodeAkun .= "<br>" . $item->kode4;
+                if (!empty($item->kode5)) $kodeAkun .= "<br>" . $item->kode5;
+
+                // Gabungkan semua nama akun
+                $namaAkun = $item->kategori;
+                if (!empty($item->kategori2)) $namaAkun .= "<br>" . $item->kategori2;
+                if (!empty($item->kategori3)) $namaAkun .= "<br>" . $item->kategori3;
+                if (!empty($item->kategori4)) $namaAkun .= "<br>" . $item->kategori4;
+                if (!empty($item->kategori5)) $namaAkun .= "<br>" . $item->kategori5;
+
+                $rows .= '<tr>';
+                $rows .= '<td style="text-align:center">'.$no++.'</td>';
+                $rows .= '<td>'.date('d/m/Y', strtotime($item->Tanggal)).'</td>';
+                $rows .= '<td>'.$kodeAkun.'</td>';
+                $rows .= '<td>'.$namaAkun.'</td>';
+                $rows .= '<td>'.$item->keterangan.' '.$item->nama_karyawan.'</td>';
+                $rows .= '<td style="text-align:right">'.($rowDebit > 0 ? number_format($rowDebit, 0, ',', '.') : '-').'</td>';
+                $rows .= '<td style="text-align:right">'.($rowKredit > 0 ? number_format($rowKredit, 0, ',', '.') : '-').'</td>';
+                $rows .= '</tr>';
+            }
+
+            // Tambahkan baris total
+            $rows .= '<tr style="font-weight:bold;background-color:#f9f9f9;">';
+            $rows .= '<td colspan="5" style="text-align:right">Total</td>';
+            $rows .= '<td style="text-align:right">'.number_format($totalDebit, 0, ',', '.').'</td>';
+            $rows .= '<td style="text-align:right">'.number_format($totalKredit, 0, ',', '.').'</td>';
+            $rows .= '</tr>';
+
+            $html = '<!DOCTYPE html><html><head><title>Laporan Keuangan</title><style>
+                body{font-family:Arial,sans-serif;font-size:12px;}
+                table{width:100%;border-collapse:collapse;margin-bottom:20px;}
+                table,th,td{border:1px solid #ddd;}
+                th,td{padding:8px;text-align:left;}
+                th{background-color:#f2f2f2;}
+                tfoot td{font-weight:bold;background-color:#f9f9f9;}
+                .text-right{text-align:right;}
+                .text-center{text-align:center;}
+                td{vertical-align:top;}
+            </style></head><body>';
+            $html .= '<h2 style="text-align:center">Laporan Keuangan</h2>';
+            $html .= '<p style="text-align:center">Periode: '.date('d/m/Y', strtotime($startDate)).' - '.date('d/m/Y', strtotime($endDate)).'</p>';
+            $html .= '<table><thead><tr>
+                <th style="text-align:center">No</th>
+                <th>Tanggal</th>
+                <th>Kode Akun</th>
+                <th>Nama Akun</th>
+                <th>Keterangan</th>
+                <th style="text-align:right">Debit</th>
+                <th style="text-align:right">Kredit</th>
+            </tr></thead><tbody>';
+            $html .= $rows;
+            $html .= '</tbody></table></body></html>';
+
             $pdf = PDF::loadHTML($html);
             return $pdf->download('laporan-keuangan-'.date('Y-m-d').'.pdf');
         } catch (\Exception $e) {

@@ -5,6 +5,10 @@
     <title>Login Page</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
             background: linear-gradient(to bottom, #00c6ff, #0072ff, #ff00ff, #ff00ff);
@@ -14,21 +18,17 @@
 <body class="flex items-center justify-center min-h-screen">
     <div class="bg-white p-8 rounded-lg shadow-lg w-80">
         <h2 class="text-2xl font-bold text-center mb-6">Login</h2>
-        @if(session('error'))
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                {{ session('error') }}
-            </div>
-        @endif
-        <form method="POST" action="{{ route('login.authenticate') }}">
+        <form method="POST" action="{{ route('login.authenticate') }}" id="loginForm">
             @csrf
             <div class="mb-4">
                 <label class="block mb-2 text-sm font-medium text-gray-600" for="email">
                     <i class="fas fa-user"></i> Email
                 </label>
-                <input class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                <input class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('email') border-red-500 @enderror" 
                        type="email" 
                        id="email" 
                        name="email" 
+                       value="{{ old('email') }}"
                        placeholder="Type your email"
                        required>
             </div>
@@ -36,7 +36,7 @@
                 <label class="block mb-2 text-sm font-medium text-gray-600" for="password">
                     <i class="fas fa-lock"></i> Password
                 </label>
-                <input class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                <input class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 @error('password') border-red-500 @enderror" 
                        type="password" 
                        id="password" 
                        name="password" 
@@ -64,5 +64,33 @@
             </a>
         </div> -->
     </div>
+
+    @if($errors->any())
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: '{{ $errors->first() }}',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'OK'
+            });
+        });
+    </script>
+    @endif
+
+    @if(session('error'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: '{{ session("error") }}',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'OK'
+            });
+        });
+    </script>
+    @endif
 </body>
 </html>

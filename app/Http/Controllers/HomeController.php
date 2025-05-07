@@ -173,16 +173,20 @@ class HomeController extends Controller
                 }
             }
 
-            // Get monthly totals for chart
+            // Get daily totals for chart
             $monthlyTotals = DB::table('laporan_transaksis')
                 ->select(
-                    DB::raw('DATE_FORMAT(Tanggal, "%Y-%m") as periode'),
-                    DB::raw('SUM(CASE WHEN LEFT(kategori, 3) IN ("241", "242") THEN uang_masuk ELSE 0 END) as total_debit'),
-                    DB::raw('SUM(CASE WHEN LEFT(kategori, 3) IN ("251", "252") THEN uang_keluar ELSE 0 END) as total_kredit')
+                    DB::raw('DATE_FORMAT(Tanggal, "%Y-%m-%d") as periode'),
+                    DB::raw('SUM(uang_masuk) as total_debit'),
+                    DB::raw('SUM(uang_keluar) as total_kredit')
                 )
+                ->whereBetween('Tanggal', [$startDate, $endDate])
                 ->groupBy('periode')
                 ->orderBy('periode')
                 ->get();
+
+            // Debug untuk memastikan data terisi
+            Log::info('Daily Totals:', ['data' => $monthlyTotals->toArray()]);
 
             // Get category totals for distribution chart
             $categoryTotals = DB::table('laporan_transaksis')
@@ -242,6 +246,63 @@ class HomeController extends Controller
                 (($currentMonthLabaRugi - $lastMonthLabaRugi) / abs($lastMonthLabaRugi)) * 100 : 
                 100;
 
+            // Ambil data neraca saldo untuk pie chart
+            $rawTransaksis = DB::table('laporan_transaksis')
+                ->whereBetween('Tanggal', [$startDate, $endDate])
+                ->orderBy('kode', 'asc')
+                ->get();
+            $totalsPerAkun = [];
+            foreach ($rawTransaksis as $transaksi) {
+                $processAkun = function($kode, $kategori, $debit, $kredit) use (&$totalsPerAkun) {
+                    if (!empty($kode) && !empty($kategori)) {
+                        if (!isset($totalsPerAkun[$kategori])) {
+                            $totalsPerAkun[$kategori] = [
+                                'kode' => $kode,
+                                'kategori' => $kategori,
+                                'debit' => 0,
+                                'kredit' => 0
+                            ];
+                        }
+                        $totalsPerAkun[$kategori]['debit'] += floatval($debit ?? 0);
+                        $totalsPerAkun[$kategori]['kredit'] += floatval($kredit ?? 0);
+                    }
+                };
+                $processAkun($transaksi->kode, $transaksi->kategori, $transaksi->uang_masuk, $transaksi->uang_keluar);
+                $processAkun($transaksi->kode2, $transaksi->kategori2, $transaksi->uang_masuk2, $transaksi->uang_keluar2);
+                $processAkun($transaksi->kode3, $transaksi->kategori3, $transaksi->uang_masuk3, $transaksi->uang_keluar3);
+                $processAkun($transaksi->kode4, $transaksi->kategori4, $transaksi->uang_masuk4, $transaksi->uang_keluar4);
+                $processAkun($transaksi->kode5, $transaksi->kategori5, $transaksi->uang_masuk5, $transaksi->uang_keluar5);
+            }
+            $finalTransaksis = [];
+            foreach ($totalsPerAkun as $kategori => $data) {
+                $kodeAwal = substr($data['kode'], 0, 3);
+                $saldo = $data['debit'] - $data['kredit'];
+                if (in_array($kodeAwal, ['111', '112']) || in_array($kodeAwal, ['251', '252'])) {
+                    if ($saldo != 0) {
+                        $finalTransaksis[] = [
+                            'kode' => $data['kode'],
+                            'kategori' => $kategori,
+                            'debit' => $saldo,
+                            'kredit' => 0
+                        ];
+                    }
+                } else {
+                    if ($saldo != 0) {
+                        $finalTransaksis[] = [
+                            'kode' => $data['kode'],
+                            'kategori' => $kategori,
+                            'debit' => 0,
+                            'kredit' => -$saldo
+                        ];
+                    }
+                }
+            }
+            $neracaTransaksis = collect($finalTransaksis);
+            $pieLabels = $neracaTransaksis->pluck('kategori')->toArray();
+            $pieData = $neracaTransaksis->map(function($item) {
+                return abs($item['debit']) + abs($item['kredit']);
+            })->toArray();
+
             return view('home', compact(
                 'startDate',
                 'endDate',
@@ -254,7 +315,9 @@ class HomeController extends Controller
                 'categoryTotals',
                 'recentTransactions',
                 'pendapatan',
-                'beban'
+                'beban',
+                'pieLabels',
+                'pieData'
             ));
 
         } catch (\Exception $e) {

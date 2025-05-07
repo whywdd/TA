@@ -163,6 +163,25 @@
     </div>
 
     <script>
+        // Notifikasi SweetAlert2
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: '{{ session("success") }}',
+                confirmButtonText: 'OK'
+            });
+        @endif
+
+        @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: '{{ session("error") }}',
+                confirmButtonText: 'OK'
+            });
+        @endif
+
         document.addEventListener('DOMContentLoaded', function() {
             const userType = document.getElementById('userType');
             const searchUser = document.getElementById('searchUser');
@@ -208,41 +227,60 @@
                 })
                 .catch(error => {
                     console.error('Error loading users:', error);
-                    Swal.fire('Error!', 'Gagal memuat data user', 'error');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: 'Gagal memuat data user',
+                        confirmButtonText: 'OK'
+                    });
                 });
         }
 
         function deleteUser(id) {
             Swal.fire({
-                title: 'Hapus User',
-                text: 'Apakah Anda yakin ingin menghapus user ini?',
+                title: 'Apakah Anda yakin?',
+                text: "Data yang dihapus tidak dapat dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Ya, Hapus',
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Ya, hapus!',
                 cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
                     fetch(`/User/${id}`, {
                         method: 'DELETE',
                         headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'Content-Type': 'application/json'
                         }
                     })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            loadUsers(
-                                document.getElementById('userType').value,
-                                document.getElementById('searchUser').value
-                            );
-                            Swal.fire('Berhasil!', 'User telah dihapus', 'success');
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: 'Data user berhasil dihapus',
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                loadUsers(
+                                    document.getElementById('userType').value,
+                                    document.getElementById('searchUser').value
+                                );
+                            });
                         } else {
                             throw new Error(data.message || 'Gagal menghapus user');
                         }
                     })
                     .catch(error => {
-                        console.error('Error deleting user:', error);
-                        Swal.fire('Error!', 'Gagal menghapus user', 'error');
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal!',
+                            text: error.message || 'Terjadi kesalahan saat menghapus data',
+                            confirmButtonText: 'OK'
+                        });
                     });
                 }
             });

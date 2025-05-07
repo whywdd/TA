@@ -62,10 +62,9 @@ class UserController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => $validator->errors()->first()
-            ], 422);
+            return redirect()->back()
+                ->with('error', $validator->errors()->first())
+                ->withInput();
         }
 
         try {
@@ -76,22 +75,24 @@ class UserController extends Controller
                 'tipe_pengguna' => $request->tipe_pengguna
             ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'User berhasil ditambahkan'
-            ]);
+            return redirect()->route('User.index')
+                ->with('success', 'User berhasil ditambahkan!');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal menambahkan user: ' . $e->getMessage()
-            ], 500);
+            return redirect()->back()
+                ->with('error', 'Gagal menambahkan user: ' . $e->getMessage())
+                ->withInput();
         }
     }
 
     public function edit($id)
     {
-        $user = User::findOrFail($id);
-        return view('EditAkun', compact('user'));
+        try {
+            $user = User::findOrFail($id);
+            return view('EditAkun', compact('user'));
+        } catch (\Exception $e) {
+            return redirect()->route('User.index')
+                ->with('error', 'User tidak ditemukan');
+        }
     }
 
     public function update(Request $request, $id)
@@ -104,10 +105,9 @@ class UserController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => $validator->errors()->first()
-            ], 422);
+            return redirect()->back()
+                ->with('error', $validator->errors()->first())
+                ->withInput();
         }
 
         try {
@@ -125,15 +125,12 @@ class UserController extends Controller
 
             $user->update($data);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'User berhasil diperbarui'
-            ]);
+            return redirect()->route('User.index')
+                ->with('success', 'Data user berhasil diperbarui!');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal memperbarui user: ' . $e->getMessage()
-            ], 500);
+            return redirect()->back()
+                ->with('error', 'Gagal memperbarui user: ' . $e->getMessage())
+                ->withInput();
         }
     }
 
@@ -145,7 +142,7 @@ class UserController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'User berhasil dihapus'
+                'message' => 'User berhasil dihapus!'
             ]);
         } catch (\Exception $e) {
             return response()->json([
