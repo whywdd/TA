@@ -159,6 +159,25 @@
                             </tfoot>
                         </table>
                     </div>
+            <!-- Filter Rows per Page -->
+            <div class="flex items-center justify-between mt-4 bg-white p-4 rounded-lg shadow-sm">
+                <div class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-700">Rows per page:</span>
+                    <select id="rowsPerPage" class="border rounded-md py-1 px-2 text-sm focus:outline-none focus:ring focus:border-blue-300">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="15">15</option>
+                        <option value="all">All</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <button id="prevPage" class="text-sm px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+                    <span id="pageIndicator" class="text-sm text-gray-700">Page 1 of 14</span>
+                    <button id="nextPage" class="text-sm px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
+                </div>
+            </div>
+        </div>
                 </div>
             @endforeach
 
@@ -248,6 +267,49 @@
                 page-break-after: always;
             }
         }
+
+        /* Styling untuk pagination */
+        .pagination-container {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            margin-top: 1rem;
+        }
+
+        #rowsPerPage {
+            background-color: white;
+            border-color: #e2e8f0;
+            padding: 0.25rem 2rem 0.25rem 0.5rem;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+        }
+
+        .pagination-button {
+            transition: all 0.2s;
+            background-color: #f3f4f6;
+            color: #374151;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+        }
+
+        .pagination-button:hover:not(:disabled) {
+            background-color: #e5e7eb;
+        }
+
+        .pagination-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #pageIndicator {
+            color: #374151;
+            font-size: 0.875rem;
+            padding: 0 1rem;
+        }
     </style>
 
     <script>
@@ -314,5 +376,86 @@
             });
         }
     }
+
+    // Pagination Logic
+    document.addEventListener('DOMContentLoaded', function() {
+        const tables = document.querySelectorAll('table');
+        
+        tables.forEach(table => {
+            const tbody = table.querySelector('tbody');
+            const rows = tbody.querySelectorAll('tr');
+            const rowsPerPageSelect = table.parentElement.parentElement.querySelector('#rowsPerPage');
+            const prevButton = table.parentElement.parentElement.querySelector('#prevPage');
+            const nextButton = table.parentElement.parentElement.querySelector('#nextPage');
+            const pageIndicator = table.parentElement.parentElement.querySelector('#pageIndicator');
+            
+            let currentPage = 1;
+            let rowsPerPage = parseInt(rowsPerPageSelect.value);
+            
+            function updatePagination() {
+                const totalRows = rows.length;
+                const totalPages = rowsPerPage === 'all' ? 1 : Math.ceil(totalRows / rowsPerPage);
+                
+                // Reset all rows
+                rows.forEach(row => {
+                    row.classList.remove('active');
+                    row.style.display = 'none';
+                });
+                
+                if (rowsPerPage === 'all') {
+                    // Show all rows
+                    rows.forEach(row => {
+                        row.classList.add('active');
+                        row.style.display = 'table-row';
+                    });
+                } else {
+                    // Show only rows for current page
+                    const start = (currentPage - 1) * rowsPerPage;
+                    const end = Math.min(start + rowsPerPage, totalRows);
+                    
+                    for (let i = start; i < end; i++) {
+                        rows[i].classList.add('active');
+                        rows[i].style.display = 'table-row';
+                    }
+                }
+                
+                // Update buttons state
+                prevButton.disabled = currentPage === 1;
+                nextButton.disabled = currentPage === totalPages;
+                
+                // Update page indicator
+                if (rowsPerPage === 'all') {
+                    pageIndicator.textContent = 'Showing all rows';
+                } else {
+                    pageIndicator.textContent = `Page ${currentPage} of ${totalPages}`;
+                }
+            }
+            
+            // Event Listeners
+            rowsPerPageSelect.addEventListener('change', function() {
+                rowsPerPage = this.value === 'all' ? 'all' : parseInt(this.value);
+                currentPage = 1;
+                updatePagination();
+            });
+            
+            prevButton.addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    updatePagination();
+                }
+            });
+            
+            nextButton.addEventListener('click', function() {
+                const totalPages = rowsPerPage === 'all' ? 1 : Math.ceil(rows.length / rowsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    updatePagination();
+                }
+            });
+            
+            // Initialize pagination
+            updatePagination();
+        });
+    });
     </script>
 @endsection
