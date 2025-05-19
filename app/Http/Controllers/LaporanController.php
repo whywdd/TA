@@ -166,7 +166,7 @@ class LaporanController extends Controller
                 }
             };
 
-            return Excel::download($export, 'laporan-keuangan-'.date('Y-m-d').'.xlsx');
+            return Excel::download($export, 'jurnal-umum-'.date('Y-m-d').'.xlsx');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal mengekspor Excel: ' . $e->getMessage());
         }
@@ -273,7 +273,7 @@ class LaporanController extends Controller
             $rows .= '<td style="text-align:right">'.number_format($totalKredit, 0, ',', '.').'</td>';
             $rows .= '</tr>';
 
-            $html = '<!DOCTYPE html><html><head><title>Laporan Keuangan</title><style>
+            $html = '<!DOCTYPE html><html><head><title>Jurnal Umum</title><style>
                 body{font-family:Arial,sans-serif;font-size:12px;}
                 table{width:100%;border-collapse:collapse;margin-bottom:20px;}
                 table,th,td{border:1px solid #ddd;}
@@ -284,7 +284,7 @@ class LaporanController extends Controller
                 .text-center{text-align:center;}
                 td{vertical-align:top;}
             </style></head><body>';
-            $html .= '<h2 style="text-align:center">Laporan Keuangan</h2>';
+            $html .= '<h2 style="text-align:center">Jurnal Umum</h2>';
             $html .= '<p style="text-align:center">Periode: '.date('d/m/Y', strtotime($startDate)).' - '.date('d/m/Y', strtotime($endDate)).'</p>';
             $html .= '<table><thead><tr>
                 <th style="text-align:center">No</th>
@@ -299,7 +299,7 @@ class LaporanController extends Controller
             $html .= '</tbody></table></body></html>';
 
             $pdf = PDF::loadHTML($html);
-            return $pdf->download('laporan-keuangan-'.date('Y-m-d').'.pdf');
+            return $pdf->download('jurnal-umum-'.date('Y-m-d').'.pdf');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal mengekspor PDF: ' . $e->getMessage());
         }

@@ -507,34 +507,55 @@ class RekeningController extends Controller
             <head>
                 <title>Buku Besar</title>
                 <style>
+                    @page {
+                        margin: 20px;
+                    }
                     body {
                         font-family: Arial, sans-serif;
                         font-size: 12px;
+                        margin: 0;
+                        padding: 0;
+                    }
+                    .main-container {
+                        margin: 0;
+                        padding: 0;
+                    }
+                    .header-content {
+                        page-break-inside: avoid;
+                        page-break-after: avoid;
+                    }
+                    .header {
+                        margin-bottom: 10px;
                     }
                     h2 {
                         text-align: center;
-                        margin-bottom: 5px;
+                        margin: 0 0 5px 0;
+                        padding: 0;
+                        font-size: 16px;
                     }
                     p.periode {
                         text-align: center;
-                        margin-top: 0;
-                        margin-bottom: 20px;
-                        font-size: 11px;
+                        margin: 0;
+                        padding: 0;
+                        font-size: 12px;
+                    }
+                    .account-section {
+                        page-break-inside: avoid;
+                        margin-top: 10px;
                     }
                     .account-info {
                         background-color: #f2f2f2;
                         padding: 8px;
-                        margin-bottom: 10px;
+                        margin: 0 0 10px 0;
                         border-radius: 4px;
                     }
                     table {
                         width: 100%;
                         border-collapse: collapse;
-                        margin-bottom: 20px;
-                        page-break-inside: avoid;
+                        margin: 0;
                     }
                     table, th, td {
-                        border: 1px solid #ddd;
+                        border: 1px solid #000;
                     }
                     th, td {
                         padding: 6px;
@@ -551,63 +572,67 @@ class RekeningController extends Controller
                     .text-center {
                         text-align: center;
                     }
-                    .page-break {
-                        page-break-after: always;
-                    }
                 </style>
             </head>
             <body>
-                <h2>Buku Besar</h2>
-                <p class="periode">Periode: ' . date('F Y', strtotime($startDate)) . '</p>';
+                <div class="main-container">
+                    <div class="header-content">
+                        <div class="header">
+                            <h2>Buku Besar</h2>
+                            <p class="periode">Periode: ' . date('F Y', strtotime($startDate)) . '</p>
+                        </div>';
                 
                 foreach($groupedLaporan as $kategori => $items) {
                     $kodeAkun = $items->first()->kode ?? '-';
                     $html .= '
-                    <div class="account-info">
-                        <strong>Nama Akun:</strong> ' . $kategori . '
-                        <span style="float: right;"><strong>Kode Akun:</strong> ' . $kodeAkun . '</span>
-                    </div>
-                    
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Tanggal</th>
-                                <th>Keterangan</th>
-                                <th class="text-center">Ref</th>
-                                <th class="text-right">Debit</th>
-                                <th class="text-right">Kredit</th>
-                                <th class="text-right">Saldo</th>
-                            </tr>
-                        </thead>
-                        <tbody>';
-                        
-                        $runningBalance = 0;
-                        $accountType = substr($kodeAkun, 0, 3);
-                        
-                        foreach($items->sortBy('Tanggal') as $item) {
-                            if (in_array($accountType, ['111', '112']) || in_array($accountType, ['251', '252'])) {
-                                $runningBalance = $runningBalance + $item->debit - $item->kredit;
-                            } else {
-                                $runningBalance = $runningBalance - $item->debit + $item->kredit;
+                        <div class="account-section">
+                            <div class="account-info">
+                                <strong>Nama Akun:</strong> ' . $kategori . '
+                                <span style="float: right;"><strong>Kode Akun:</strong> ' . $kodeAkun . '</span>
+                            </div>
+                            
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Tanggal</th>
+                                        <th>Keterangan</th>
+                                        <th class="text-center">Ref</th>
+                                        <th class="text-right">Debit</th>
+                                        <th class="text-right">Kredit</th>
+                                        <th class="text-right">Saldo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>';
+                            
+                            $runningBalance = 0;
+                            $accountType = substr($kodeAkun, 0, 3);
+                            
+                            foreach($items->sortBy('Tanggal') as $item) {
+                                if (in_array($accountType, ['111', '112']) || in_array($accountType, ['251', '252'])) {
+                                    $runningBalance = $runningBalance + $item->debit - $item->kredit;
+                                } else {
+                                    $runningBalance = $runningBalance - $item->debit + $item->kredit;
+                                }
+                                
+                                $html .= '
+                                <tr>
+                                    <td>' . date('d/m/Y', strtotime($item->Tanggal)) . '</td>
+                                    <td>' . $item->keterangan . '</td>
+                                    <td class="text-center">-</td>
+                                    <td class="text-right">' . ($item->debit > 0 ? number_format($item->debit, 0, ',', '.') : '-') . '</td>
+                                    <td class="text-right">' . ($item->kredit > 0 ? number_format($item->kredit, 0, ',', '.') : '-') . '</td>
+                                    <td class="text-right">' . number_format($runningBalance, 0, ',', '.') . '</td>
+                                </tr>';
                             }
                             
                             $html .= '
-                            <tr>
-                                <td>' . date('d/m/Y', strtotime($item->Tanggal)) . '</td>
-                                <td>' . $item->keterangan . '</td>
-                                <td class="text-center">-</td>
-                                <td class="text-right">' . ($item->debit > 0 ? number_format($item->debit, 0, ',', '.') : '-') . '</td>
-                                <td class="text-right">' . ($item->kredit > 0 ? number_format($item->kredit, 0, ',', '.') : '-') . '</td>
-                                <td class="text-right">' . number_format($runningBalance, 0, ',', '.') . '</td>
-                            </tr>';
-                        }
-                        
-                        $html .= '
-                        </tbody>
-                    </table>';
+                            </tbody>
+                        </table>
+                    </div>';
                 }
                 
                 $html .= '
+                </div>
             </body>
             </html>';
             

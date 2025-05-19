@@ -153,7 +153,7 @@ class NeracasaldoController extends Controller
     public function exportExcel(Request $request)
     {
         try {
-            // Ambil parameter filter tanggal jika ada
+            // Ambil parameter filter tanggal
             $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
             $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
 
@@ -166,7 +166,7 @@ class NeracasaldoController extends Controller
             $totalDebit = 0;
             $totalKredit = 0;
 
-            // Proses data seperti di fungsi index
+            // Proses data transaksi
             foreach ($rawTransaksis as $transaksi) {
                 $processAkun = function($kode, $kategori, $debit, $kredit) use (&$totalsPerAkun) {
                     if (!empty($kode) && !empty($kategori)) {
@@ -183,6 +183,7 @@ class NeracasaldoController extends Controller
                     }
                 };
 
+                // Proses semua kolom transaksi
                 $processAkun($transaksi->kode, $transaksi->kategori, $transaksi->uang_masuk, $transaksi->uang_keluar);
                 $processAkun($transaksi->kode2, $transaksi->kategori2, $transaksi->uang_masuk2, $transaksi->uang_keluar2);
                 $processAkun($transaksi->kode3, $transaksi->kategori3, $transaksi->uang_masuk3, $transaksi->uang_keluar3);
@@ -190,32 +191,41 @@ class NeracasaldoController extends Controller
                 $processAkun($transaksi->kode5, $transaksi->kategori5, $transaksi->uang_masuk5, $transaksi->uang_keluar5);
             }
 
+            // Proses saldo untuk setiap akun
             foreach ($totalsPerAkun as $kategori => $data) {
                 $kodeAwal = substr($data['kode'], 0, 3);
                 $saldo = $data['debit'] - $data['kredit'];
                 
-                if (in_array($kodeAwal, ['111', '112']) || in_array($kodeAwal, ['251', '252'])) {
-                    if ($saldo != 0) {
-                        $processedData[] = [
-                            'kode' => $data['kode'],
-                            'kategori' => $kategori,
-                            'debit' => $saldo > 0 ? abs($saldo) : 0,
-                            'kredit' => $saldo < 0 ? abs($saldo) : 0
-                        ];
-                        $totalDebit += $saldo > 0 ? abs($saldo) : 0;
-                        $totalKredit += $saldo < 0 ? abs($saldo) : 0;
+                // Reset nilai debit dan kredit
+                $debit = 0;
+                $kredit = 0;
+
+                // Logika untuk menentukan posisi saldo
+                if (in_array($kodeAwal, ['111', '112', '251', '252'])) {
+                    // Aktiva dan Beban
+                    if ($saldo > 0) {
+                        $debit = $saldo;
+                    } else {
+                        $kredit = abs($saldo);
                     }
                 } else {
-                    if ($saldo != 0) {
-                        $processedData[] = [
-                            'kode' => $data['kode'],
-                            'kategori' => $kategori,
-                            'debit' => $saldo < 0 ? abs($saldo) : 0,
-                            'kredit' => $saldo > 0 ? abs($saldo) : 0
-                        ];
-                        $totalDebit += $saldo < 0 ? abs($saldo) : 0;
-                        $totalKredit += $saldo > 0 ? abs($saldo) : 0;
+                    // Pasiva dan Pendapatan
+                    if ($saldo < 0) {
+                        $kredit = abs($saldo);
+                    } else {
+                        $debit = $saldo;
                     }
+                }
+
+                if ($saldo != 0) {
+                    $processedData[] = [
+                        'kode' => $data['kode'],
+                        'kategori' => $kategori,
+                        'debit' => $debit,
+                        'kredit' => $kredit
+                    ];
+                    $totalDebit += $debit;
+                    $totalKredit += $kredit;
                 }
             }
 
@@ -227,13 +237,23 @@ class NeracasaldoController extends Controller
                 'kredit' => $totalKredit
             ];
 
-            // Buat class export inline
+            // Buat class export inline dengan format yang diperbaiki
             $export = new class($processedData) implements FromCollection, WithHeadings {
                 protected $data;
                 
                 public function __construct($data) 
                 {
-                    $this->data = collect($data);
+                    // Format data untuk Excel
+                    $formattedData = collect($data)->map(function ($item) {
+                        return [
+                            'kode' => $item['kode'],
+                            'kategori' => $item['kategori'],
+                            'debit' => $item['debit'] > 0 ? $item['debit'] : 0,
+                            'kredit' => $item['kredit'] > 0 ? $item['kredit'] : 0
+                        ];
+                    });
+                    
+                    $this->data = $formattedData;
                 }
                 
                 public function collection()
@@ -302,32 +322,48 @@ class NeracasaldoController extends Controller
                 $kodeAwal = substr($data['kode'], 0, 3);
                 $saldo = $data['debit'] - $data['kredit'];
                 
-                if (in_array($kodeAwal, ['111', '112']) || in_array($kodeAwal, ['251', '252'])) {
-                    if ($saldo != 0) {
-                        $processedData[] = [
-                            'kode' => $data['kode'],
-                            'kategori' => $kategori,
-                            'debit' => $saldo > 0 ? abs($saldo) : 0,
-                            'kredit' => $saldo < 0 ? abs($saldo) : 0
-                        ];
-                        $totalDebit += $saldo > 0 ? abs($saldo) : 0;
-                        $totalKredit += $saldo < 0 ? abs($saldo) : 0;
+                // Reset nilai debit dan kredit
+                $debit = 0;
+                $kredit = 0;
+
+                // Logika untuk menentukan posisi saldo
+                if (in_array($kodeAwal, ['111', '112', '251', '252'])) {
+                    // Aktiva dan Beban
+                    if ($saldo > 0) {
+                        $debit = $saldo;
+                    } else {
+                        $kredit = abs($saldo);
                     }
                 } else {
-                    if ($saldo != 0) {
-                        $processedData[] = [
-                            'kode' => $data['kode'],
-                            'kategori' => $kategori,
-                            'debit' => $saldo < 0 ? abs($saldo) : 0,
-                            'kredit' => $saldo > 0 ? abs($saldo) : 0
-                        ];
-                        $totalDebit += $saldo < 0 ? abs($saldo) : 0;
-                        $totalKredit += $saldo > 0 ? abs($saldo) : 0;
+                    // Pasiva dan Pendapatan
+                    if ($saldo < 0) {
+                        $kredit = abs($saldo);
+                    } else {
+                        $debit = $saldo;
                     }
+                }
+
+                if ($saldo != 0) {
+                    $processedData[] = [
+                        'kode' => $data['kode'],
+                        'kategori' => $kategori,
+                        'debit' => $debit,
+                        'kredit' => $kredit
+                    ];
+                    $totalDebit += $debit;
+                    $totalKredit += $kredit;
                 }
             }
 
-            // Generate PDF
+            // Tambahkan baris total
+            $processedData[] = [
+                'kode' => '',
+                'kategori' => 'Total',
+                'debit' => $totalDebit,
+                'kredit' => $totalKredit
+            ];
+
+            // Generate PDF dengan style yang diperbaiki
             $html = '
             <!DOCTYPE html>
             <html>
@@ -354,23 +390,25 @@ class NeracasaldoController extends Controller
                         margin-bottom: 20px;
                     }
                     table, th, td {
-                        border: 1px solid #ddd;
+                        border: 1px solid #000;
                     }
                     th, td {
-                        padding: 6px;
+                        padding: 8px;
                         text-align: left;
-                        font-size: 10px;
                     }
                     th {
                         background-color: #f2f2f2;
-                        font-weight: bold;
                     }
                     .text-right {
                         text-align: right;
                     }
-                    tfoot td {
+                    .total-row td {
                         font-weight: bold;
-                        background-color: #f9f9f9;
+                        background-color: #f2f2f2;
+                    }
+                    .amount {
+                        text-align: right;
+                        white-space: nowrap;
                     }
                 </style>
             </head>
@@ -381,10 +419,10 @@ class NeracasaldoController extends Controller
                 <table>
                     <thead>
                         <tr>
-                            <th>Kode</th>
-                            <th>Nama Akun</th>
-                            <th class="text-right">Debit</th>
-                            <th class="text-right">Kredit</th>
+                            <th style="width: 15%;">Kode</th>
+                            <th style="width: 45%;">Nama Akun</th>
+                            <th style="width: 20%;" class="amount">Debit</th>
+                            <th style="width: 20%;" class="amount">Kredit</th>
                         </tr>
                     </thead>
                     <tbody>';
@@ -395,8 +433,8 @@ class NeracasaldoController extends Controller
                             <tr>
                                 <td>'.$data['kode'].'</td>
                                 <td>'.$data['kategori'].'</td>
-                                <td class="text-right">'.($data['debit'] > 0 ? 'Rp '.number_format($data['debit'], 0, ',', '.') : '-').'</td>
-                                <td class="text-right">'.($data['kredit'] > 0 ? 'Rp '.number_format($data['kredit'], 0, ',', '.') : '-').'</td>
+                                <td class="amount">'.($data['debit'] > 0 ? number_format($data['debit'], 0, ',', '.') : '-').'</td>
+                                <td class="amount">'.($data['kredit'] > 0 ? number_format($data['kredit'], 0, ',', '.') : '-').'</td>
                             </tr>';
                         }
                     }
@@ -404,10 +442,10 @@ class NeracasaldoController extends Controller
                     $html .= '
                     </tbody>
                     <tfoot>
-                        <tr>
-                            <td colspan="2" class="text-right">Total:</td>
-                            <td class="text-right">Rp '.number_format($totalDebit, 0, ',', '.').'</td>
-                            <td class="text-right">Rp '.number_format($totalKredit, 0, ',', '.').'</td>
+                        <tr class="total-row">
+                            <td colspan="2" style="text-align: right;">Total:</td>
+                            <td class="amount">'.number_format($totalDebit, 0, ',', '.').'</td>
+                            <td class="amount">'.number_format($totalKredit, 0, ',', '.').'</td>
                         </tr>
                     </tfoot>
                 </table>

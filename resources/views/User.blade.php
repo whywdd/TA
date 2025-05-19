@@ -1,6 +1,7 @@
 @extends('Core.Sidebar')
 @section('content')
     <title>Data Akun User</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <!-- SweetAlert2 JS -->
@@ -248,20 +249,29 @@
                 cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
+                    const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                    
                     fetch(`/User/${id}`, {
                         method: 'DELETE',
                         headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'X-CSRF-TOKEN': token,
+                            'Accept': 'application/json',
                             'Content-Type': 'application/json'
-                        }
+                        },
+                        credentials: 'same-origin'
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         if (data.success) {
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Berhasil!',
-                                text: 'Data user berhasil dihapus',
+                                text: data.message || 'Data user berhasil dihapus',
                                 confirmButtonText: 'OK'
                             }).then(() => {
                                 loadUsers(
