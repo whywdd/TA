@@ -9,7 +9,7 @@
     </div>
     
     <div class="bg-white rounded-lg shadow-lg p-6">
-        <form id="uangMasukForm" action="{{ route('uangmasuk.store') }}" method="POST" class="space-y-4">
+        <form id="uangMasukForm" action="{{ route('uangmasuk.store') }}" method="POST" class="space-y-4" onsubmit="return validateForm(event)">
             @csrf
             <!-- Tanggal -->
             <div class="form-group">
@@ -56,6 +56,9 @@
                                     <option value="{{ $karyawan->nama }}" data-gaji="{{ $karyawan->gaji }}">{{ $karyawan->nama }} - {{ $karyawan->jabatan }}</option>
                                 @endforeach
                             </select>
+
+                            <!-- Hidden input untuk gaji -->
+                            <input type="hidden" name="gaji" id="gaji_input">
 
                             <!-- Input Keterangan Tambahan -->
                             <div class="form-group">
@@ -340,48 +343,43 @@ function formatNumber(input) {
     input.value = value;
 }
 
-function validateBalance() {
-    const nominals = document.getElementsByName('nominal[]');
-    const posisis = document.getElementsByName('posisi[]');
-    
-    // Pastikan semua field terisi
-    let isValid = true;
-    for (let i = 0; i < nominals.length; i++) {
-        const nominal = nominals[i].value.replace(/\D/g, '');
-        const posisi = posisis[i].value;
-        
-        if (!nominal || !posisi) {
-            isValid = false;
-            break;
-        }
-    }
-    
-    const submitBtn = document.getElementById('submitBtn');
-    submitBtn.disabled = !isValid;
-    if (isValid) {
-        submitBtn.classList.remove('bg-gray-400');
-        submitBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-    } else {
-        submitBtn.classList.add('bg-gray-400');
-        submitBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-    }
-}
+function validateForm(event) {
+    event.preventDefault();
+    console.log('Validating form...');
 
-// Set default date to today
-document.querySelector('input[type="date"]').valueAsDate = new Date();
-
-// Event listener untuk form submit
-document.getElementById('uangMasukForm').addEventListener('submit', function(e) {
+    // Validasi jumlah rekening
     const nominals = document.getElementsByName('nominal[]');
     if (nominals.length < 2) {
-        e.preventDefault();
         Swal.fire({
             icon: 'error',
             title: 'Error!',
             text: 'Minimal harus ada 2 rekening!',
             confirmButtonText: 'OK'
         });
-        return;
+        return false;
+    }
+
+    // Validasi input rekening
+    let isValid = true;
+    for (let i = 0; i < nominals.length; i++) {
+        const nominal = nominals[i].value.replace(/\D/g, '');
+        const posisi = document.getElementsByName('posisi[]')[i].value;
+        const kategori = document.getElementsByName('kategori[]')[i].value;
+
+        if (!nominal || !posisi || !kategori) {
+            isValid = false;
+            break;
+        }
+    }
+
+    if (!isValid) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Semua field rekening harus diisi!',
+            confirmButtonText: 'OK'
+        });
+        return false;
     }
 
     // Set keterangan berdasarkan input yang dipilih
@@ -395,33 +393,77 @@ document.getElementById('uangMasukForm').addEventListener('submit', function(e) 
         const manual = document.querySelector('textarea[name="keterangan_manual"]').value;
         document.getElementById('keterangan').value = manual;
     }
-});
 
-// Event listener untuk input nominal
-document.addEventListener('input', function(e) {
-    if (e.target.name === 'nominal[]') {
-        formatNumber(e.target);
-        validateBalance();
-    }
-});
+    console.log('Form validation passed, submitting...');
+    document.getElementById('uangMasukForm').submit();
+    return false;
+}
 
-// Event listener untuk perubahan posisi
-document.addEventListener('change', function(e) {
-    if (e.target.name === 'posisi[]') {
-        validateBalance();
-    }
-});
-
-document.getElementById('keterangan').addEventListener('change', function() {
-    const selectedOption = this.options[this.selectedIndex];
-    const gaji = selectedOption.getAttribute('data-gaji');
-    if (gaji) {
-        const nominalInputs = document.getElementsByName('nominal[]');
-        if (nominalInputs.length > 0) {
-            nominalInputs[0].value = new Intl.NumberFormat('id-ID').format(gaji);
-            validateBalance();
+function validateBalance() {
+    const nominals = document.getElementsByName('nominal[]');
+    const posisis = document.getElementsByName('posisi[]');
+    const kategoris = document.getElementsByName('kategori[]');
+    
+    let isValid = true;
+    for (let i = 0; i < nominals.length; i++) {
+        const nominal = nominals[i].value.replace(/\D/g, '');
+        const posisi = posisis[i].value;
+        const kategori = kategoris[i].value;
+        
+        if (!nominal || !posisi || !kategori) {
+            isValid = false;
+            break;
         }
     }
+
+    const submitBtn = document.getElementById('submitBtn');
+    if (isValid) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('bg-gray-400');
+        submitBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+    } else {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('bg-gray-400');
+        submitBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+    }
+}
+
+// Set default date to today
+document.querySelector('input[type="date"]').valueAsDate = new Date();
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Page loaded');
+    validateBalance();
+
+    // Event listener untuk input nominal
+    document.addEventListener('input', function(e) {
+        if (e.target.name === 'nominal[]') {
+            formatNumber(e.target);
+            validateBalance();
+        }
+    });
+
+    // Event listener untuk perubahan posisi dan kategori
+    document.addEventListener('change', function(e) {
+        if (e.target.name === 'posisi[]' || e.target.name === 'kategori[]') {
+            validateBalance();
+        }
+    });
+
+    // Event listener untuk perubahan karyawan
+    document.getElementById('keterangan').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const gaji = selectedOption.getAttribute('data-gaji');
+        if (gaji) {
+            document.getElementById('gaji_input').value = gaji;
+            const nominalInputs = document.getElementsByName('nominal[]');
+            if (nominalInputs.length > 0) {
+                nominalInputs[0].value = new Intl.NumberFormat('id-ID').format(gaji);
+                validateBalance();
+            }
+        }
+    });
 });
 
 @if(session('success'))

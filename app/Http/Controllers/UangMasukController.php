@@ -37,6 +37,12 @@ class UangMasukController extends Controller
                 if ($request->filled('keterangan_tambahan')) {
                     $keterangan = $request->keterangan_tambahan;
                 }
+                
+                // Ambil gaji dari model GajiModel berdasarkan nama karyawan
+                $karyawan = GajiModel::where('nama', $request->keterangan)->first();
+                if ($karyawan) {
+                    $data['gaji'] = $karyawan->gaji;
+                }
             } else {
                 $keterangan = $request->keterangan_manual;
             }
