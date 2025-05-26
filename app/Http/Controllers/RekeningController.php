@@ -405,18 +405,36 @@ class RekeningController extends Controller
                         
                         // Tambahkan data transaksi
                         $runningBalance = 0;
+                        $transaksiPerHari = [];
+                        
+                        // Kelompokkan transaksi berdasarkan tanggal
                         foreach ($items->sortBy('Tanggal') as $item) {
-                            $accountType = substr($item->kode, 0, 3);
-                            $runningBalance = $this->calculateBalance($runningBalance, $item->debit, $item->kredit, $accountType);
-                            
-                            $exportData->push([
-                                Carbon::parse($item->Tanggal)->format('d/m/Y'),
-                                $item->keterangan,
-                                '-',
-                                $item->debit > 0 ? number_format($item->debit, 0, ',', '.') : '-',
-                                $item->kredit > 0 ? number_format($item->kredit, 0, ',', '.') : '-',
-                                number_format($runningBalance, 0, ',', '.')
-                            ]);
+                            $tanggalTransaksi = date('Y-m-d', strtotime($item->Tanggal));
+                            if (!isset($transaksiPerHari[$tanggalTransaksi])) {
+                                $transaksiPerHari[$tanggalTransaksi] = [];
+                            }
+                            $transaksiPerHari[$tanggalTransaksi][] = $item;
+                        }
+                        
+                        // Proses setiap transaksi per hari
+                        foreach ($transaksiPerHari as $tanggal => $transaksis) {
+                            $nomorUrut = 1;
+                            foreach ($transaksis as $item) {
+                                $accountType = substr($item->kode, 0, 3);
+                                $runningBalance = $this->calculateBalance($runningBalance, $item->debit, $item->kredit, $accountType);
+                                
+                                // Format Ref
+                                $ref = 'JU/' . date('Y-m-d', strtotime($tanggal)) . '/' . str_pad($nomorUrut++, 3, '0', STR_PAD_LEFT);
+                                
+                                $exportData->push([
+                                    Carbon::parse($item->Tanggal)->format('d/m/Y'),
+                                    $item->keterangan,
+                                    $ref,
+                                    $item->debit > 0 ? $item->debit : '',
+                                    $item->kredit > 0 ? $item->kredit : '',
+                                    $runningBalance
+                                ]);
+                            }
                         }
                         
                         // Tambahkan baris kosong setelah setiap kategori
@@ -607,22 +625,39 @@ class RekeningController extends Controller
                             $runningBalance = 0;
                             $accountType = substr($kodeAkun, 0, 3);
                             
+                            // Kelompokkan transaksi berdasarkan tanggal
+                            $transaksiPerHari = [];
                             foreach($items->sortBy('Tanggal') as $item) {
-                                if (in_array($accountType, ['111', '112']) || in_array($accountType, ['251', '252'])) {
-                                    $runningBalance = $runningBalance + $item->debit - $item->kredit;
-                                } else {
-                                    $runningBalance = $runningBalance - $item->debit + $item->kredit;
+                                $tanggalTransaksi = date('Y-m-d', strtotime($item->Tanggal));
+                                if (!isset($transaksiPerHari[$tanggalTransaksi])) {
+                                    $transaksiPerHari[$tanggalTransaksi] = [];
                                 }
-                                
-                                $html .= '
-                                <tr>
-                                    <td>' . date('d/m/Y', strtotime($item->Tanggal)) . '</td>
-                                    <td>' . $item->keterangan . '</td>
-                                    <td class="text-center">-</td>
-                                    <td class="text-right">' . ($item->debit > 0 ? number_format($item->debit, 0, ',', '.') : '-') . '</td>
-                                    <td class="text-right">' . ($item->kredit > 0 ? number_format($item->kredit, 0, ',', '.') : '-') . '</td>
-                                    <td class="text-right">' . number_format($runningBalance, 0, ',', '.') . '</td>
-                                </tr>';
+                                $transaksiPerHari[$tanggalTransaksi][] = $item;
+                            }
+                            
+                            // Proses setiap transaksi per hari
+                            foreach($transaksiPerHari as $tanggal => $transaksis) {
+                                $nomorUrut = 1;
+                                foreach($transaksis as $item) {
+                                    if (in_array($accountType, ['111', '112']) || in_array($accountType, ['251', '252'])) {
+                                        $runningBalance = $runningBalance + $item->debit - $item->kredit;
+                                    } else {
+                                        $runningBalance = $runningBalance - $item->debit + $item->kredit;
+                                    }
+                                    
+                                    // Format Ref
+                                    $ref = 'JU/' . date('Y-m-d', strtotime($tanggal)) . '/' . str_pad($nomorUrut++, 3, '0', STR_PAD_LEFT);
+                                    
+                                    $html .= '
+                                    <tr>
+                                        <td>' . date('d/m/Y', strtotime($item->Tanggal)) . '</td>
+                                        <td>' . $item->keterangan . '</td>
+                                        <td class="text-center">' . $ref . '</td>
+                                        <td class="text-right">' . ($item->debit > 0 ? number_format($item->debit, 0, ',', '.') : '-') . '</td>
+                                        <td class="text-right">' . ($item->kredit > 0 ? number_format($item->kredit, 0, ',', '.') : '-') . '</td>
+                                        <td class="text-right">' . number_format($runningBalance, 0, ',', '.') . '</td>
+                                    </tr>';
+                                }
                             }
                             
                             $html .= '

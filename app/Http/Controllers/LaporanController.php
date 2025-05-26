@@ -57,9 +57,13 @@ class LaporanController extends Controller
         try {
             $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
             $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
-            $laporan = LaporanModel::whereBetween('Tanggal', [$startDate, $endDate])
-                ->orderBy('Tanggal', 'desc')
-                ->get();
+            $sortOrder = $request->input('sort_order', 'asc');
+            $laporanQuery = LaporanModel::whereBetween('Tanggal', [$startDate, $endDate]);
+            if ($sortOrder == 'desc') {
+                $laporan = $laporanQuery->orderBy('Tanggal', 'desc')->get();
+            } else {
+                $laporan = $laporanQuery->orderBy('Tanggal', 'asc')->get();
+            }
 
             $rows = [];
             $no = 1;
@@ -141,8 +145,8 @@ class LaporanController extends Controller
                     'Kode Akun' => $kodeAkun,
                     'Nama Akun' => $namaAkun,
                     'Keterangan' => $item->keterangan . ' ' . $item->nama_karyawan,
-                    'Debit' => $rowDebit > 0 ? number_format($rowDebit, 0, ',', '.') : '-',
-                    'Kredit' => $rowKredit > 0 ? number_format($rowKredit, 0, ',', '.') : '-'
+                    'Debit' => $rowDebit > 0 ? $rowDebit : '',
+                    'Kredit' => $rowKredit > 0 ? $rowKredit : ''
                 ];
             }
 
@@ -153,8 +157,8 @@ class LaporanController extends Controller
                 'Kode Akun' => '',
                 'Nama Akun' => '',
                 'Keterangan' => 'Total',
-                'Debit' => number_format($totalDebit, 0, ',', '.'),
-                'Kredit' => number_format($totalKredit, 0, ',', '.')
+                'Debit' => $totalDebit,
+                'Kredit' => $totalKredit
             ];
 
             $export = new class($rows) implements FromCollection, WithHeadings {
@@ -177,9 +181,13 @@ class LaporanController extends Controller
         try {
             $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
             $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
-            $laporan = LaporanModel::whereBetween('Tanggal', [$startDate, $endDate])
-                ->orderBy('Tanggal', 'desc')
-                ->get();
+            $sortOrder = $request->input('sort_order', 'asc');
+            $laporanQuery = LaporanModel::whereBetween('Tanggal', [$startDate, $endDate]);
+            if ($sortOrder == 'desc') {
+                $laporan = $laporanQuery->orderBy('Tanggal', 'desc')->get();
+            } else {
+                $laporan = $laporanQuery->orderBy('Tanggal', 'asc')->get();
+            }
 
             $rows = '';
             $no = 1;
