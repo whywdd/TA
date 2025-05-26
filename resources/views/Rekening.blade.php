@@ -108,44 +108,68 @@
                                 @php
                                     $runningBalance = 0;
                                     $accountType = getAccountTypePHP($kodeAkun);
+                                    $transaksiPerHari = []; // Array untuk menyimpan transaksi per hari
                                 @endphp
+                                
                                 @foreach($items->sortBy('Tanggal') as $item)
-                                    <tr class="border-b border-gray-200 hover:bg-gray-50">
-                                        <td class="py-3 px-4">{{ date('d/m/Y', strtotime($item->Tanggal)) }}</td>
-                                        <td class="py-3 px-4">{{ $item->keterangan }}</td>
-                                        <td class="py-3 px-4 text-center">-</td>
-                                        <td class="py-3 px-4 text-right">
-                                            @if($item->debit > 0)
-                                                {{ number_format($item->debit, 0, ',', '.') }}
-                                            @else
-                                                -
-                                            @endif
-                                        </td>
-                                        <td class="py-3 px-4 text-right">
-                                            @if($item->kredit > 0)
-                                                {{ number_format($item->kredit, 0, ',', '.') }}
-                                            @else
-                                                -
-                                            @endif
-                                        </td>
-                                        <td class="py-3 px-4 text-right">
-                                            @php
-                                                $runningBalance = calculateBalancePHP($runningBalance, $item->debit ?? 0, $item->kredit ?? 0, $accountType);
-                                                $displayBalance = $runningBalance < 0 ? '-' . number_format(abs($runningBalance), 0, ',', '.') : number_format($runningBalance, 0, ',', '.');
-                                            @endphp
-                                            {{ $displayBalance }}
-                                        </td>
-                                        <!-- <td class="py-3 px-4 text-center">
-                                            <div class="flex justify-center space-x-2">
-                                                <button class="text-blue-600 hover:text-blue-800" title="Edit">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button onclick="hapusData({{ $item->id }})" class="text-red-600 hover:text-red-800" title="Hapus">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </div>
-                                        </td> -->
-                                    </tr>
+                                    @php
+                                        $tanggalTransaksi = date('Y-m-d', strtotime($item->Tanggal));
+                                        if (!isset($transaksiPerHari[$tanggalTransaksi])) {
+                                            $transaksiPerHari[$tanggalTransaksi] = []; // Inisialisasi array untuk tanggal ini
+                                        }
+                                        $transaksiPerHari[$tanggalTransaksi][] = $item; // Tambahkan item ke tanggal yang sesuai
+                                    @endphp
+                                @endforeach
+
+                                @foreach($transaksiPerHari as $tanggal => $transaksis)
+                                    @php
+                                        $nomorUrut = 1; // Reset nomor urut untuk setiap tanggal
+                                    @endphp
+                                    @foreach($transaksis as $item)
+                                        @php
+                                            // Format Ref
+                                            $ref = 'JU/' . date('Y-m-d', strtotime($tanggal)) . '/' . str_pad($nomorUrut++, 3, '0', STR_PAD_LEFT);
+                                            // Hitung total untuk baris ini
+                                            $rowDebit = $item->debit ?? 0;
+                                            $rowKredit = $item->kredit ?? 0;
+                                        @endphp
+                                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                                            <td class="py-3 px-4">{{ date('d/m/Y', strtotime($item->Tanggal)) }}</td>
+                                            <td class="py-3 px-4">{{ $item->keterangan }}</td>
+                                            <td class="py-3 px-4 text-center">{{ $ref }}</td>
+                                            <td class="py-3 px-4 text-right">
+                                                @if($item->debit > 0)
+                                                    {{ number_format($item->debit, 0, ',', '.') }}
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
+                                            <td class="py-3 px-4 text-right">
+                                                @if($item->kredit > 0)
+                                                    {{ number_format($item->kredit, 0, ',', '.') }}
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
+                                            <td class="py-3 px-4 text-right">
+                                                @php
+                                                    $runningBalance = calculateBalancePHP($runningBalance, $item->debit ?? 0, $item->kredit ?? 0, $accountType);
+                                                    $displayBalance = $runningBalance < 0 ? '-' . number_format(abs($runningBalance), 0, ',', '.') : number_format($runningBalance, 0, ',', '.');
+                                                @endphp
+                                                {{ $displayBalance }}
+                                            </td>
+                                            <!-- <td class="py-3 px-4 text-center">
+                                                <div class="flex justify-center space-x-2">
+                                                    <button class="text-blue-600 hover:text-blue-800" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button onclick="hapusData({{ $item->id }})" class="text-red-600 hover:text-red-800" title="Hapus">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td> -->
+                                        </tr>
+                                    @endforeach
                                 @endforeach
                             </tbody>
                             <tfoot>

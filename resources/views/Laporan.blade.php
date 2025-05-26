@@ -35,79 +35,15 @@
                         <input type="date" name="end_date" class="border rounded px-2 py-1" value="{{ $endDate ?? '' }}">
                     </div>
                     <button type="submit" class="bg-blue-500 text-white px-4 py-1 rounded">Filter</button>
+                    <div class="flex items-center gap-2 ml-4">
+                        <label class="text-sm font-medium">Urutkan:</label>
+                        <select name="sort_order" class="border rounded px-2 py-1" onchange="this.form.submit()">
+                            <option value="asc" {{ (request('sort_order') == 'asc' || !request('sort_order')) ? 'selected' : '' }}>Tanggal Lama ke Baru</option>
+                            <option value="desc" {{ request('sort_order') == 'desc' ? 'selected' : '' }}>Tanggal Baru ke Lama</option>
+                        </select>
+                    </div>
                 </form>
             </div>
-
-            <!-- Summary Cards
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <div class="bg-white p-4 rounded-lg shadow">
-                    <h3 class="text-gray-500 text-sm">Total Pendapatan</h3>
-                    <p class="text-2xl font-bold text-green-600">Rp {{ number_format($totalUangMasuk, 0, ',', '.') }}</p>
-                    <p class="text-sm text-gray-400">Data realtime keuangan</p>
-                </div>
-                <div class="bg-white p-4 rounded-lg shadow">
-                    <h3 class="text-gray-500 text-sm">Total Pengeluaran</h3>
-                    <p class="text-2xl font-bold text-red-600">Rp {{ number_format($totalKredit, 0, ',', '.') }}</p>
-                    <p class="text-sm text-gray-400">Data realtime keuangan</p>
-                </div>
-                <div class="bg-white p-4 rounded-lg shadow">
-                    <h3 class="text-gray-500 text-sm">Laba Bersih</h3>
-                    <p class="text-2xl font-bold text-blue-600">Rp {{ number_format(($saldo > 0) ? $saldo : 0, 0, ',', '.') }}</p>
-                    
-                    @if(isset($persentasePeningkatan))
-                        <p class="text-sm {{ $persentasePeningkatan >= 0 ? 'text-green-500' : 'text-red-500' }}">
-                            {{ $persentasePeningkatan >= 0 ? '+' : '' }}{{ number_format($persentasePeningkatan, 0) }}% dari bulan lalu
-                        </p>
-                    @else
-                        <p class="text-sm text-gray-400">Data realtime keuangan</p>
-                    @endif
-                </div>
-                <div class="bg-white p-4 rounded-lg shadow">
-                    <h3 class="text-gray-500 text-sm">Rugi</h3>
-                    <p class="text-2xl font-bold text-gray-700">Rp {{ number_format(($saldo < 0) ? $saldo : 0, 0, ',', '.') }}</p>
-                    <p class="text-sm text-gray-400">Data realtime keuangan</p>
-                </div>
-            </div> -->
-
-            <!-- Enhanced Filter Section -->
-            <!-- <div class="flex flex-wrap gap-4 px-6 py-4 border-b border-gray-200">
-                <form id="filterForm" class="flex flex-wrap gap-4 w-full" onsubmit="applyFilter(event)">
-                    <div class="flex items-center">
-                        <label for="periode" class="mr-2 text-sm font-medium text-gray-600">Periode:</label>
-                        <select id="periode" name="periode" class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="handlePeriodeChange()">
-                            <option value="daily">Harian</option>
-                            <option value="weekly">Mingguan</option>
-                            <option value="monthly" selected>Bulanan</option>
-                            <option value="yearly">Tahunan</option>
-                        </select>
-                    </div>
-                    <div class="flex items-center">
-                        <label for="startDate" class="mr-2 text-sm font-medium text-gray-600">Dari:</label>
-                        <input type="date" id="startDate" name="startDate" class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div class="flex items-center">
-                        <label for="endDate" class="mr-2 text-sm font-medium text-gray-600">Sampai:</label>
-                        <input type="date" id="endDate" name="endDate" class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div class="flex items-center">
-                        <label for="category" class="mr-2 text-sm font-medium text-gray-600">Kategori:</label>
-                        <select id="category" name="category" class="border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">Semua Kategori</option>
-                            <option value="penjualan">Penjualan</option>
-                            <option value="pembelian">Pembelian</option>
-                            <option value="gaji">Gaji & Upah</option>
-                            <option value="operasional">Biaya Operasional</option>
-                            <option value="lainnya">Lainnya</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors">
-                        <i class="fas fa-search mr-2"></i>Filter
-                    </button>
-                    <button type="button" class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors" onclick="resetFilter()">
-                        <i class="fas fa-redo mr-2"></i>Reset
-                    </button>
-                </form>
-            </div> -->
 
             <!-- Enhanced Table -->
             <div class="overflow-x-auto">
@@ -115,7 +51,10 @@
                     <thead>
                         <tr class="bg-gray-100 text-gray-600 uppercase text-sm leading-normal">
                             <th class="py-3 px-4 text-left">No</th>
-                            <th class="py-3 px-4 text-left">Tanggal</th>
+                            <th class="py-3 px-4 text-left cursor-pointer hover:bg-gray-200" onclick="sortByDate()">
+                                Tanggal 
+                                <i class="fas fa-sort ml-1" id="sortIcon"></i>
+                            </th>
                             <th class="py-3 px-4 text-left">Kode Akun</th>
                             <th class="py-3 px-4 text-left">Nama Akun</th>
                             <th class="py-3 px-4 text-left">Keterangan</th>
@@ -129,9 +68,21 @@
                             $no = 1;
                             $totalDebitTable = 0;
                             $totalKreditTable = 0;
+                            
+                            // Sort laporan berdasarkan tanggal
+                            $sortOrder = request('sort_order', 'asc');
+                            $sortedLaporan = $laporan->sortBy(function($item) {
+                                return strtotime($item->Tanggal);
+                            });
+                            
+                            if ($sortOrder == 'desc') {
+                                $sortedLaporan = $sortedLaporan->sortByDesc(function($item) {
+                                    return strtotime($item->Tanggal);
+                                });
+                            }
                         @endphp
                         
-                        @foreach($laporan as $item)
+                        @foreach($sortedLaporan as $item)
                             @php
                                 // Cek apakah semua nilai adalah debit
                                 $allDebit = true;
@@ -194,9 +145,12 @@
                                 $totalDebitTable += $rowDebit;
                                 $totalKreditTable += $rowKredit;
                             @endphp
-                            <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <tr class="border-b border-gray-200 hover:bg-gray-50" data-date="{{ $item->Tanggal }}">
                                 <td class="py-3 px-4">{{ $no++ }}</td>
-                                <td class="py-3 px-4">{{ date('d/m/Y', strtotime($item->Tanggal)) }}</td>
+                                <td class="py-3 px-4">
+                                    <span class="font-medium">{{ date('d/m/Y', strtotime($item->Tanggal)) }}</span>
+                                    <div class="text-xs text-gray-500">{{ date('l', strtotime($item->Tanggal)) }}</div>
+                                </td>
                                 <td class="py-3 px-4">
                                     <div class="flex flex-col">
                                         <span>{{ $item->kode }}</span>
@@ -312,9 +266,6 @@
                                 </td>
                                 <td class="py-3 px-4 text-center aksi-col">
                                     <div class="flex justify-center space-x-2">
-                                        <!-- <button class="text-blue-600 hover:text-blue-800" title="Edit">
-                                            <i class="fas fa-edit"></i> -->
-                                        </button>
                                         <button onclick="hapusData({{ $item->id }})" class="text-red-600 hover:text-red-800" title="Hapus">
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -335,32 +286,32 @@
             </div>
 
             <div class="intro-y col-span-12 flex flex-wrap sm:flex-row sm:flex-nowrap items-center py-5 px-4 bg-white rounded-md shadow-md">
-            <!-- Filter Rows per Page -->
-            <div class="flex items-center space-x-2 flex-grow">
-                <label for="rowsPerPage" class="text-sm font-medium">Rows per page:</label>
-                <select id="rowsPerPage" class="border rounded-md py-3 px-6 ml-1 text-sm focus:outline-none focus:ring focus:border-blue-300">
-                    <option value="5" selected>5</option>
-                    <option value="10">10</option>
-                    <option value="15">15</option>
-                    <option value="all">All</option>
-                </select>
-            </div>
+                <!-- Filter Rows per Page -->
+                <div class="flex items-center space-x-2 flex-grow">
+                    <label for="rowsPerPage" class="text-sm font-medium">Rows per page:</label>
+                    <select id="rowsPerPage" class="border rounded-md py-3 px-6 ml-1 text-sm focus:outline-none focus:ring focus:border-blue-300">
+                        <option value="5" selected>5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                        <option value="all">All</option>
+                    </select>
+                </div>
 
-            <!-- Pagination Controls -->
-            <div class="flex items-center space-x-4 ml-2">
-                <button id="prevPage" class="text-sm px-3 py-2 border rounded-md bg-gray-100 hover:bg-gray-200 focus:outline-none">Previous</button>
-                <span id="pageIndicator" class="text-sm font-medium">Page 1</span>
-                <button id="nextPage" class="text-sm px-3 py-2 border rounded-md bg-gray-100 hover:bg-gray-200 focus:outline-none">Next</button>
+                <!-- Pagination Controls -->
+                <div class="flex items-center space-x-4 ml-2">
+                    <button id="prevPage" class="text-sm px-3 py-2 border rounded-md bg-gray-100 hover:bg-gray-200 focus:outline-none">Previous</button>
+                    <span id="pageIndicator" class="text-sm font-medium">Page 1</span>
+                    <button id="nextPage" class="text-sm px-3 py-2 border rounded-md bg-gray-100 hover:bg-gray-200 focus:outline-none">Next</button>
+                </div>
             </div>
-        </div>
 
             <!-- Action Buttons -->
             <div class="flex justify-between items-center mt-4 mb-4">
                 <div class="flex space-x-2">
-                    <a href="{{ route('laporan.export-excel', ['start_date' => $startDate, 'end_date' => $endDate]) }}" class="btn bg-green-500 text-white hover:bg-green-600">
+                    <a href="{{ route('laporan.export-excel', ['start_date' => $startDate, 'end_date' => $endDate, 'sort_order' => request('sort_order', 'asc')]) }}" class="btn bg-green-500 text-white hover:bg-green-600">
                         <i class="fas fa-file-excel mr-2"></i>Export Excel
                     </a>
-                    <a href="{{ route('laporan.export-pdf', ['start_date' => $startDate, 'end_date' => $endDate]) }}" class="btn bg-red-500 text-white hover:bg-red-600">
+                    <a href="{{ route('laporan.export-pdf', ['start_date' => $startDate, 'end_date' => $endDate, 'sort_order' => request('sort_order', 'asc')]) }}" class="btn bg-red-500 text-white hover:bg-red-600">
                         <i class="fas fa-file-pdf mr-2"></i>Export PDF
                     </a>
                     <button onclick="window.print()" class="btn bg-gray-500 text-white hover:bg-gray-600">
