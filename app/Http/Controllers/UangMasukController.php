@@ -22,6 +22,9 @@ class UangMasukController extends Controller
     public function store(Request $request)
     {
         try {
+            // Debug untuk melihat data yang diterima
+            \Log::info('Request Data:', $request->all());
+
             $request->validate([
                 'Tanggal' => 'required|date',
                 'keterangan_type' => 'required|in:karyawan,manual',
@@ -33,17 +36,24 @@ class UangMasukController extends Controller
             // Gabungkan keterangan berdasarkan tipe input
             $keterangan = '';
             if ($request->keterangan_type === 'karyawan') {
+                if (empty($request->keterangan)) {
+                    throw new \Exception('Karyawan harus dipilih');
+                }
+                
                 $keterangan = $request->keterangan;
                 if ($request->filled('keterangan_tambahan')) {
-                    $keterangan = $request->keterangan_tambahan;
+                    $keterangan .= ' - ' . $request->keterangan_tambahan;
                 }
                 
                 // Ambil gaji dari model GajiModel berdasarkan nama karyawan
                 $karyawan = GajiModel::where('nama', $request->keterangan)->first();
-                if ($karyawan) {
-                    $data['gaji'] = $karyawan->gaji;
+                if (!$karyawan) {
+                    throw new \Exception('Data karyawan tidak ditemukan');
                 }
             } else {
+                if (empty($request->keterangan_manual)) {
+                    throw new \Exception('Keterangan manual harus diisi');
+                }
                 $keterangan = $request->keterangan_manual;
             }
 
@@ -72,11 +82,19 @@ class UangMasukController extends Controller
                 }
             }
 
+            // Debug untuk melihat data yang akan disimpan
+            \Log::info('Data to be saved:', $data);
+
             // Simpan data
-            UangMasukModel::create($data);
+            $result = UangMasukModel::create($data);
+
+            if (!$result) {
+                throw new \Exception('Gagal menyimpan data');
+            }
 
             return redirect()->back()->with('success', 'Data berhasil disimpan!');
         } catch (\Exception $e) {
+            \Log::error('Error in UangMasukController@store: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
         }
     }

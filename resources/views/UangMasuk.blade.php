@@ -1,6 +1,10 @@
 @extends('Core.Sidebar')
 
 @section('content')
+<!-- Tambahkan CSS Select2 di bagian atas -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
 <div class="p-6 animate-fade-in">
     <!-- Header -->
     <div class="mb-4 bg-blue-600 text-white p-4 rounded-lg shadow-md">
@@ -57,9 +61,6 @@
                                 @endforeach
                             </select>
 
-                            <!-- Hidden input untuk gaji -->
-                            <input type="hidden" name="gaji" id="gaji_input">
-
                             <!-- Input Keterangan Tambahan -->
                             <div class="form-group">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -82,7 +83,6 @@
                             class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
                             rows="3"
                             placeholder="Masukkan keterangan"
-                            required
                         ></textarea>
                     </div>
                 </div>
@@ -103,7 +103,7 @@
                         </label>
                         <select 
                             name="kategori[]"
-                            class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                            class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 kategori-select" 
                             required
                         >
                             <option value="" disabled selected>Pilih Kategori Akun</option>
@@ -274,6 +274,10 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<!-- Tambahkan jQuery dan Select2 JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
 let rekeningCount = 1;
 const MAX_REKENING = 5;
@@ -309,30 +313,42 @@ function tambahRekening() {
 
     rekeningCount++;
     const container = document.getElementById('rekening-container');
-    const template = document.querySelector('.rekening-entry').cloneNode(true);
-    
-    // Update judul rekening
-    template.querySelector('h3').textContent = `Rekening ${rekeningCount}`;
-    
+    const template = document.querySelector('.rekening-entry');
+
+    // Hapus Select2 sebelum clone
+    const selectKategori = template.querySelector('select[name="kategori[]"]');
+    if ($(selectKategori).hasClass("select2-hidden-accessible")) {
+        $(selectKategori).select2('destroy');
+    }
+
+    // Clone node
+    const newEntry = template.cloneNode(true);
+
     // Reset nilai-nilai form
-    template.querySelector('select[name="kategori[]"]').value = '';
-    template.querySelector('select[name="posisi[]"]').value = '';
-    template.querySelector('input[name="nominal[]"]').value = '';
-    
+    newEntry.querySelector('select[name="kategori[]"]').value = '';
+    newEntry.querySelector('select[name="posisi[]"]').value = '';
+    newEntry.querySelector('input[name="nominal[]"]').value = '';
+
+    // Update judul rekening
+    newEntry.querySelector('h3').textContent = `Rekening ${rekeningCount}`;
+
     // Tambahkan tombol hapus untuk rekening tambahan
-    const headerDiv = template.querySelector('.flex');
+    const headerDiv = newEntry.querySelector('.flex');
     const deleteButton = document.createElement('button');
     deleteButton.type = 'button';
     deleteButton.className = 'text-red-500 hover:text-red-700';
     deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
     deleteButton.onclick = function() {
-        template.remove();
+        newEntry.remove();
         rekeningCount--;
         validateBalance();
     };
     headerDiv.appendChild(deleteButton);
-    
-    container.appendChild(template);
+
+    container.appendChild(newEntry);
+
+    // Inisialisasi Select2 ulang untuk semua select kategori
+    initializeSelect2();
 }
 
 function formatNumber(input) {
@@ -386,12 +402,28 @@ function validateForm(event) {
     const keteranganType = document.querySelector('input[name="keterangan_type"]:checked').value;
     if (keteranganType === 'karyawan') {
         const karyawan = document.getElementById('keterangan').value;
+        if (!karyawan) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: 'Silakan pilih karyawan!',
+                confirmButtonText: 'OK'
+            });
+            return false;
+        }
         const tambahan = document.querySelector('textarea[name="keterangan_tambahan"]').value;
         document.querySelector('textarea[name="keterangan_manual"]').value = '';
-        document.getElementById('keterangan').value = tambahan ? `${karyawan} - ${tambahan}` : karyawan;
     } else {
         const manual = document.querySelector('textarea[name="keterangan_manual"]').value;
-        document.getElementById('keterangan').value = manual;
+        if (!manual) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: 'Silakan isi keterangan manual!',
+                confirmButtonText: 'OK'
+            });
+            return false;
+        }
     }
 
     console.log('Form validation passed, submitting...');
@@ -431,10 +463,30 @@ function validateBalance() {
 // Set default date to today
 document.querySelector('input[type="date"]').valueAsDate = new Date();
 
+// Tambahkan fungsi untuk inisialisasi Select2
+function initializeSelect2() {
+    $('.kategori-select').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        placeholder: 'Pilih Kategori Akun',
+        allowClear: true,
+        language: {
+            noResults: function() {
+                return "Tidak ada hasil yang ditemukan";
+            },
+            searching: function() {
+                return "Mencari...";
+            }
+        }
+    });
+}
+
 // Event listeners
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Page loaded');
     validateBalance();
+    toggleKeteranganInput();
+    initializeSelect2(); // Inisialisasi Select2 saat halaman dimuat
 
     // Event listener untuk input nominal
     document.addEventListener('input', function(e) {
@@ -456,7 +508,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedOption = this.options[this.selectedIndex];
         const gaji = selectedOption.getAttribute('data-gaji');
         if (gaji) {
-            document.getElementById('gaji_input').value = gaji;
             const nominalInputs = document.getElementsByName('nominal[]');
             if (nominalInputs.length > 0) {
                 nominalInputs[0].value = new Intl.NumberFormat('id-ID').format(gaji);
@@ -486,6 +537,31 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
+/* Tambahkan style untuk Select2 */
+.select2-container--bootstrap-5 .select2-selection {
+    min-height: 38px;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+}
+
+.select2-container--bootstrap-5 .select2-selection--single {
+    padding: 0.375rem 0.75rem;
+}
+
+.select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+    padding-left: 0;
+}
+
+.select2-container--bootstrap-5 .select2-dropdown {
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+}
+
+.select2-container--bootstrap-5 .select2-results__option--highlighted {
+    background-color: #3b82f6;
+}
+
+/* Existing styles */
 @keyframes fadeIn {
     from {
         opacity: 0;
