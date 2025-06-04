@@ -79,18 +79,16 @@ class HomeController extends Controller
 
     public function index(Request $request)
     {
-        // Default date range hanya jika ada parameter filter
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
+        // Default date range untuk bulan ini jika tidak ada parameter
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->format('Y-m-d'));
         
         try {
             // Query dasar
             $query = DB::table('laporan_transaksis');
             
-            // Terapkan filter tanggal hanya jika ada parameter
-            if ($startDate && $endDate) {
-                $query->whereBetween('Tanggal', [$startDate, $endDate]);
-            }
+            // Terapkan filter tanggal
+            $query->whereBetween('Tanggal', [$startDate, $endDate]);
 
             // Ambil semua transaksi
             $transaksis = $query->get();
@@ -445,9 +443,6 @@ class HomeController extends Controller
                 ->orderBy('periode')
                 ->get();
 
-            // Debug untuk memastikan data terisi
-            Log::info('Daily Totals:', ['data' => $monthlyTotals->toArray()]);
-
             // Get category totals for distribution chart
             $categoryTotals = DB::table('laporan_transaksis')
                 ->select(
@@ -466,8 +461,8 @@ class HomeController extends Controller
                 ->get();
 
             // Calculate growth percentage
-            $lastMonthStart = Carbon::parse($startDate)->subMonth()->startOfMonth();
-            $lastMonthEnd = Carbon::parse($startDate)->subMonth()->endOfMonth();
+            $lastMonthStart = Carbon::now()->subMonth()->startOfMonth();
+            $lastMonthEnd = Carbon::now()->subMonth()->endOfMonth();
             
             $lastMonthData = DB::table('laporan_transaksis')
                 ->whereBetween('Tanggal', [$lastMonthStart, $lastMonthEnd])
@@ -507,7 +502,6 @@ class HomeController extends Controller
 
             // Ambil data neraca saldo untuk pie chart
             $rawTransaksis = DB::table('laporan_transaksis')
-                ->whereBetween('Tanggal', [$startDate, $endDate])
                 ->orderBy('kode', 'asc')
                 ->get();
             $totalsPerAkun = [];
