@@ -36,18 +36,20 @@
                 <div class="space-y-2">
                     <!-- Radio Button untuk memilih input -->
                     <div class="flex items-center space-x-4">
+                        @if($tipe_pengguna == 'owner')
                         <label class="flex items-center">
                             <input type="radio" name="keterangan_type" value="karyawan" checked class="mr-2" onchange="toggleKeteranganInput()">
                             <span>Pilih Karyawan</span>
                         </label>
+                        @endif
                         <label class="flex items-center">
-                            <input type="radio" name="keterangan_type" value="manual" class="mr-2" onchange="toggleKeteranganInput()">
+                            <input type="radio" name="keterangan_type" value="manual" {{ $tipe_pengguna != 'owner' ? 'checked' : '' }} class="mr-2" onchange="toggleKeteranganInput()">
                             <span>Input Manual</span>
                         </label>
                     </div>
 
                     <!-- Dropdown Karyawan -->
-                    <div id="karyawanInput">
+                    <div id="karyawanInput" {{ $tipe_pengguna != 'owner' ? 'class="hidden"' : '' }}>
                         <div class="space-y-4">
                             <select 
                                 id="keterangan"
@@ -287,7 +289,7 @@ function toggleKeteranganInput() {
     const manualInput = document.getElementById('manualInput');
     const keteranganType = document.querySelector('input[name="keterangan_type"]:checked').value;
 
-    if (keteranganType === 'karyawan') {
+    if (keteranganType === 'karyawan' && '{{ $tipe_pengguna }}' === 'owner') {
         karyawanInput.classList.remove('hidden');
         manualInput.classList.add('hidden');
         document.getElementById('keterangan').required = true;

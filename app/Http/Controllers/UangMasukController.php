@@ -16,7 +16,10 @@ class UangMasukController extends Controller
             ->select('id', 'nama', 'jabatan', 'gaji')
             ->get();
             
-        return view('UangMasuk', compact('karyawans'));
+        // Ambil tipe pengguna dari user yang sedang login
+        $tipe_pengguna = auth()->user()->tipe_pengguna;
+            
+        return view('UangMasuk', compact('karyawans', 'tipe_pengguna'));
     }
 
     public function store(Request $request)
