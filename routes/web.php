@@ -54,6 +54,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/laporan/{id}', [LaporanController::class, 'destroy'])->name('laporan.destroy');
     Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::get('/home/filter', [HomeController::class, 'filter'])->name('home.filter');
+    Route::get('/home/all', [HomeController::class, 'showAll'])->name('home.all');
     Route::get('/User', [UserController::class, 'index'])->name('User.index');
     Route::get('/User/create', [UserController::class, 'create'])->name('User.create');
     Route::post('/User', [UserController::class, 'store'])->name('User.store');

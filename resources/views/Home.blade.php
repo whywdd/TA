@@ -17,19 +17,29 @@
   <!-- Filter Section -->
   <div class="flex flex-wrap items-center gap-4 mb-6">
     <h2 class="text-xl font-bold text-indigo-700 dark:text-white">Dashboard Keuangan</h2>
-    <form action="{{ route('home.filter') }}" method="GET" class="flex flex-wrap items-center gap-4 sm:ml-auto">
+    <div class="flex flex-wrap items-center gap-4 sm:ml-auto">
+      <!-- Switch Toggle -->
       <div class="flex items-center gap-2">
-        <span class="text-sm text-gray-600">Tanggal Awal</span>
-        <input type="date" name="start_date" class="form-input box bg-white border border-indigo-200 rounded-lg text-gray-600" value="{{ $startDate }}">
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="showAllSwitch" class="sr-only peer" {{ !request('start_date') && !request('end_date') ? 'checked' : '' }}>
+          <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+          <span class="ml-3 text-sm font-medium text-gray-600 dark:text-gray-300">Tampilkan Semua</span>
+        </label>
       </div>
-      <div class="flex items-center gap-2">
-        <span class="text-sm text-gray-600">Tanggal Akhir</span>
-        <input type="date" name="end_date" class="form-input box bg-white border border-indigo-200 rounded-lg text-gray-600" value="{{ $endDate }}">
-      </div>
-      <button type="submit" class="btn bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600">
-        Filter
-      </button>
-    </form>
+      <form action="{{ route('home.filter') }}" method="GET" class="flex flex-wrap items-center gap-4">
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-600">Tanggal Awal</span>
+          <input type="date" name="start_date" class="form-input box bg-white border border-indigo-200 rounded-lg text-gray-600" value="{{ request('start_date', $startDate ?? '') }}">
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-sm text-gray-600">Tanggal Akhir</span>
+          <input type="date" name="end_date" class="form-input box bg-white border border-indigo-200 rounded-lg text-gray-600" value="{{ request('end_date', $endDate ?? '') }}">
+        </div>
+        <button type="submit" class="btn bg-indigo-500 text-white px-4 py-2 rounded-lg hover:bg-indigo-600">
+          Filter
+        </button>
+      </form>
+    </div>
   </div>
 
   <!-- Main Metrics -->
@@ -546,6 +556,21 @@ function updateChartType(type) {
         window.trendChart.update();
     }
 }
+
+// Script untuk menangani toggle switch
+document.addEventListener('DOMContentLoaded', function() {
+  const showAllSwitch = document.getElementById('showAllSwitch');
+  
+  showAllSwitch.addEventListener('change', function() {
+    if (this.checked) {
+      // Redirect ke halaman tampilkan semua
+      window.location.href = "{{ route('home.all') }}";
+    } else {
+      // Redirect ke halaman dengan filter tanggal default
+      window.location.href = "{{ route('home.filter', ['start_date' => date('Y-m-d'), 'end_date' => date('Y-m-d')]) }}";
+    }
+  });
+});
 </script>
 
 @endsection
