@@ -560,8 +560,12 @@ document.addEventListener('DOMContentLoaded', function() {
       // Redirect ke halaman tampilkan semua
       window.location.href = "{{ route('home.all') }}";
     } else {
-      // Redirect ke halaman dengan filter tanggal default
-      window.location.href = "{{ route('home.filter', ['start_date' => date('Y-m-d'), 'end_date' => date('Y-m-d')]) }}";
+      // Redirect ke halaman dengan filter tanggal bulan ini
+      const today = new Date();
+      const startDate = today.toISOString().split('T')[0].substring(0, 8) + '01';
+      const endDate = today.toISOString().split('T')[0];
+      
+      window.location.href = `{{ route('home.filter') }}?start_date=${startDate}&end_date=${endDate}`;
     }
   });
 });
