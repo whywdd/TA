@@ -13,7 +13,6 @@ class AuthController extends Controller
         Session::flush();
         Auth::logout();
         
-        return redirect()->route('login')
-            ->with('success', 'Anda berhasil logout.');
+        return redirect()->route('login');
     }
 } 

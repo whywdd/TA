@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\UangMasukModel; // Import model
 use App\Models\GajiModel; // Import model gaji
+use App\Models\LaporanModel; // Import model laporan
 use Illuminate\Http\Request;
 
 class UangMasukController extends Controller
@@ -28,12 +29,13 @@ class UangMasukController extends Controller
             // Debug untuk melihat data yang diterima
             \Log::info('Request Data:', $request->all());
 
+            // Validasi input
             $request->validate([
                 'Tanggal' => 'required|date',
                 'keterangan_type' => 'required|in:karyawan,manual',
                 'kategori' => 'required|array',
                 'posisi' => 'required|array',
-                'nominal' => 'required|array',
+                'nominal' => 'required|array'
             ]);
 
             // Gabungkan keterangan berdasarkan tipe input
@@ -47,12 +49,6 @@ class UangMasukController extends Controller
                 if ($request->filled('keterangan_tambahan')) {
                     $keterangan .= ' - ' . $request->keterangan_tambahan;
                 }
-                
-                // Ambil gaji dari model GajiModel berdasarkan nama karyawan
-                $karyawan = GajiModel::where('nama', $request->keterangan)->first();
-                if (!$karyawan) {
-                    throw new \Exception('Data karyawan tidak ditemukan');
-                }
             } else {
                 if (empty($request->keterangan_manual)) {
                     throw new \Exception('Keterangan manual harus diisi');
@@ -60,42 +56,52 @@ class UangMasukController extends Controller
                 $keterangan = $request->keterangan_manual;
             }
 
+            // Proses data
             $data = [
                 'Tanggal' => $request->Tanggal,
                 'keterangan' => $keterangan,
+                'nama_karyawan' => $request->keterangan_type === 'karyawan' ? $request->keterangan : null,
+                'kode' => $this->generateKode($request->kategori[0]),
+                'kategori' => $request->kategori[0],
+                'uang_masuk' => str_replace(['.', ','], '', $request->nominal[0]) ?? 0,
+                'uang_keluar' => 0
             ];
 
-            // Proses setiap rekening
-            foreach ($request->kategori as $index => $kategori) {
-                $kode = $this->generateKode($kategori);
-                $nominal = str_replace(['.', ','], '', $request->nominal[$index]);
-                
-                // Set kode dan kategori sesuai urutan
-                $positionIndex = $index === 0 ? '' : ($index + 1);
-                $data["kode" . $positionIndex] = $kode;
-                $data["kategori" . $positionIndex] = $kategori;
-
-                // Set uang_masuk atau uang_keluar berdasarkan posisi
-                if ($request->posisi[$index] === 'debit') {
-                    $data["uang_masuk" . $positionIndex] = $nominal;
-                    $data["uang_keluar" . $positionIndex] = null;
+            // Tambahkan data untuk rekening tambahan jika ada
+            for ($i = 1; $i < count($request->kategori); $i++) {
+                if ($request->posisi[$i] === 'debit') {
+                    $data["uang_masuk" . ($i + 1)] = str_replace(['.', ','], '', $request->nominal[$i]);
+                    $data["kode" . ($i + 1)] = $this->generateKode($request->kategori[$i]);
+                    $data["kategori" . ($i + 1)] = $request->kategori[$i];
                 } else {
-                    $data["uang_masuk" . $positionIndex] = null;
-                    $data["uang_keluar" . $positionIndex] = $nominal;
+                    $data["uang_keluar" . ($i + 1)] = str_replace(['.', ','], '', $request->nominal[$i]);
+                    $data["kode" . ($i + 1)] = $this->generateKode($request->kategori[$i]);
+                    $data["kategori" . ($i + 1)] = $request->kategori[$i];
                 }
             }
 
-            // Debug untuk melihat data yang akan disimpan
-            \Log::info('Data to be saved:', $data);
-
             // Simpan data
-            $result = UangMasukModel::create($data);
+            $laporan = LaporanModel::create($data);
 
-            if (!$result) {
-                throw new \Exception('Gagal menyimpan data');
+            // Catat riwayat
+            $riwayatController = new RiwayatController();
+            $keteranganRiwayat = "Input transaksi baru - Tanggal: " . date('d/m/Y', strtotime($request->Tanggal)) . 
+                                ", Keterangan: " . $keterangan;
+            
+            if ($request->keterangan_type === 'karyawan') {
+                $keteranganRiwayat .= ", Nama Karyawan: " . $request->keterangan;
             }
+            
+            $keteranganRiwayat .= ", Kategori: " . implode(", ", array_filter($request->kategori));
+            
+            $riwayatController->store(
+                auth()->id(),
+                auth()->user()->nama,
+                'Input Transaksi',
+                $keteranganRiwayat
+            );
 
-            return redirect()->back()->with('success', 'Data berhasil disimpan!');
+            return redirect()->back()->with('success', 'Data berhasil disimpan');
         } catch (\Exception $e) {
             \Log::error('Error in UangMasukController@store: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());

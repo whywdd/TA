@@ -48,6 +48,10 @@
             </div>
             <button type="submit" class="w-full py-2 mb-4 text-white bg-gradient-to-r from-teal-400 to-pink-500 rounded-lg hover:from-teal-500 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">LOGIN</button>
         </form>
+        <div class="text-center">
+            <p class="text-sm text-gray-600 mb-2">Belum punya akun?</p>
+            <a href="{{ route('register') }}" class="inline-block w-full py-2 text-white bg-gradient-to-r from-blue-400 to-purple-500 rounded-lg hover:from-blue-500 hover:to-purple-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">REGISTER</a>
+        </div>
         <!-- <div class="text-center text-sm text-gray-600 mb-4">Or Sign Up Using</div>
         <div class="flex justify-center space-x-4">
             <a href="#" class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white">
@@ -86,6 +90,20 @@
                 icon: 'error',
                 title: 'Oops...',
                 text: '{{ session("error") }}',
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'OK'
+            });
+        });
+    </script>
+    @endif
+
+    @if(session('success'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: '{{ session("success") }}',
                 confirmButtonColor: '#3085d6',
                 confirmButtonText: 'OK'
             });

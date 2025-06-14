@@ -230,7 +230,12 @@
                 </a>
             </li>
             @endif
-
+            <li class="mb-4">
+                <a href="{{ route('riwayat.index') }}" class="nav-link flex items-center p-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-history mr-3"></i>
+                    <span>Riwayat</span>
+                </a>
+            </li>
             <li class="mt-8">
                 <form action="{{ route('logout') }}" method="POST" id="logout-form">
                     @csrf

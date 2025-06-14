@@ -9,6 +9,11 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     
+    <!-- Tambahkan variabel PHP untuk tipe pengguna -->
+    @php
+        $isOwner = auth()->user()->tipe_pengguna === 'owner';
+    @endphp
+    
     <style>
         /* Gradient Background */
         body {
@@ -136,10 +141,12 @@
                 </div>
 
                 <div class="filter-group ml-auto">
-                    <a href="{{ route('User.create') }}" id="createUser" class="btn btn-primary">
-                        <i class="fas fa-plus"></i>
-                        <span>Tambah User</span>
-                    </a>
+                    @if($isOwner)
+                        <a href="{{ route('User.create') }}" id="createUser" class="btn btn-primary">
+                            <i class="fas fa-plus"></i>
+                            <span>Tambah User</span>
+                        </a>
+                    @endif
                 </div>
             </div>
 
@@ -164,6 +171,9 @@
     </div>
 
     <script>
+        // Tambahkan variabel JavaScript untuk tipe pengguna
+        const isOwner = @json($isOwner);
+
         // Notifikasi SweetAlert2
         @if(session('success'))
             Swal.fire({
@@ -215,12 +225,14 @@
                             <td>${user.email}</td>
                             <td>${user.tipe_pengguna}</td>
                             <td class="text-center">
-                                <a href="/User/${user.id}/edit" class="text-blue-600 hover:text-blue-800 mx-1">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <button onclick="deleteUser(${user.id})" class="text-red-600 hover:text-red-800 mx-1">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                                ${isOwner ? `
+                                    <a href="/User/${user.id}/edit" class="text-blue-600 hover:text-blue-800 mx-1">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button onclick="deleteUser(${user.id})" class="text-red-600 hover:text-red-800 mx-1">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                ` : ''}
                             </td>
                         `;
                         tbody.appendChild(row);
@@ -238,6 +250,16 @@
         }
 
         function deleteUser(id) {
+            if (!isOwner) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Akses Ditolak!',
+                    text: 'Anda tidak memiliki akses untuk menghapus user',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
             Swal.fire({
                 title: 'Apakah Anda yakin?',
                 text: "Data yang dihapus tidak dapat dikembalikan!",

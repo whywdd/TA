@@ -17,6 +17,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RekeningController;
 use App\Http\Controllers\NeracasaldoController;
 use App\Http\Controllers\LabarugiController;
+use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\RiwayatController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -87,4 +89,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/labarugi/filter', [LabarugiController::class, 'filter'])->name('labarugi.filter');
     Route::get('/labarugi/export-excel', [LabarugiController::class, 'exportExcel'])->name('labarugi.export-excel');
     Route::get('/labarugi/export-pdf', [LabarugiController::class, 'exportPDF'])->name('labarugi.export-pdf');
+
+    // Route untuk Riwayat
+    Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
 });
+
+Route::get('/register', [RegisterController::class, 'index'])->name('register');
+Route::post('/register', [RegisterController::class, 'store'])->name('register.store');

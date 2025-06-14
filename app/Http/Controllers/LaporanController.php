@@ -10,6 +10,7 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Carbon\Carbon;
+use App\Http\Controllers\RiwayatController;
 
 class LaporanController extends Controller
 {
@@ -317,10 +318,34 @@ class LaporanController extends Controller
     {
         try {
             $laporan = LaporanModel::findOrFail($id);
+            
+            // Catat riwayat sebelum menghapus
+            $riwayatController = new RiwayatController();
+            $keteranganRiwayat = "Menghapus laporan - Tanggal: " . date('d/m/Y', strtotime($laporan->Tanggal)) . 
+                                ", Keterangan: " . $laporan->keterangan;
+            
+            if (!empty($laporan->nama_karyawan)) {
+                $keteranganRiwayat .= ", Nama Karyawan: " . $laporan->nama_karyawan;
+            }
+            
+            $riwayatController->store(
+                auth()->id(),
+                auth()->user()->nama,
+                'Hapus Laporan',
+                $keteranganRiwayat
+            );
+            
             $laporan->delete();
-            return response()->json(['success' => true, 'message' => 'Data berhasil dihapus']);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil dihapus'
+            ]);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Gagal menghapus data: ' . $e->getMessage()], 500);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

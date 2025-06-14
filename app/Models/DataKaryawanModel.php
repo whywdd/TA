@@ -10,7 +10,7 @@ class DataKaryawanModel extends Model
     
     protected $fillable = [
         'nama',
-        'usia',
+        'tanggal_lahir',
         'jabatan',
         'gaji'
     ];

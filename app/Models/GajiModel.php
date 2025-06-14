@@ -24,7 +24,7 @@ class GajiModel extends Model
     // Kolom yang dapat diisi
     protected $fillable = [
         'nama',
-        'usia',
+        'tanggal_lahir',
         'jabatan',
         'gaji'
     ];
@@ -38,5 +38,6 @@ class GajiModel extends Model
 
     protected $casts = [
         'gaji' => 'decimal:2',
+        'tanggal_lahir' => 'integer'
     ];
 }

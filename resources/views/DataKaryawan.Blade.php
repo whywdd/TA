@@ -26,20 +26,25 @@
                 >
             </div>
 
-            <!-- Usia -->
+            <!-- Tanggal Lahir -->
             <div class="form-group">
                 <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Usia <span class="text-red-600">*</span>
+                    Tanggal Lahir <span class="text-red-600">*</span>
                 </label>
                 <input 
-                    type="number" 
-                    name="usia"
+                    type="date" 
+                    name="tanggal_lahir"
+                    id="tanggal_lahir"
                     class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Masukkan usia"
-                    min="17"
-                    max="65"
                     required
+                    max="{{ date('Y-m-d') }}"
+                    onchange="hitungUsia(this.value)"
                 >
+                <div class="mt-2">
+                    <span class="text-sm font-medium text-gray-700">Usia: </span>
+                    <span id="usia" class="text-sm text-gray-600">-</span>
+                    <span class="text-sm text-gray-600">tahun</span>
+                </div>
                 <p class="text-xs text-gray-500 mt-1">Usia minimal 17 tahun dan maksimal 65 tahun</p>
             </div>
 
@@ -112,6 +117,72 @@ function formatNumber(input) {
     
     input.value = value;
 }
+
+function hitungUsia(tanggalLahir) {
+    const today = new Date();
+    const birthDate = new Date(tanggalLahir);
+    
+    let usia = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        usia--;
+    }
+    
+    // Validasi usia
+    if (usia < 17) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Usia Tidak Memenuhi Syarat',
+            text: 'Usia minimal harus 17 tahun',
+            confirmButtonText: 'OK'
+        });
+        document.getElementById('tanggal_lahir').value = '';
+        document.getElementById('usia').textContent = '-';
+        return;
+    }
+    
+    if (usia > 65) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Usia Tidak Memenuhi Syarat',
+            text: 'Usia maksimal harus 65 tahun',
+            confirmButtonText: 'OK'
+        });
+        document.getElementById('tanggal_lahir').value = '';
+        document.getElementById('usia').textContent = '-';
+        return;
+    }
+    
+    document.getElementById('usia').textContent = usia;
+}
+
+// Tambahkan validasi form sebelum submit
+document.getElementById('karyawanForm').addEventListener('submit', function(e) {
+    const tanggalLahir = document.getElementById('tanggal_lahir').value;
+    if (!tanggalLahir) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Silakan isi tanggal lahir',
+            confirmButtonText: 'OK'
+        });
+        return;
+    }
+    
+    const usia = parseInt(document.getElementById('usia').textContent);
+    if (isNaN(usia) || usia < 17 || usia > 65) {
+        e.preventDefault();
+        Swal.fire({
+            icon: 'error',
+            title: 'Error!',
+            text: 'Usia harus antara 17-65 tahun',
+            confirmButtonText: 'OK'
+        });
+        return;
+    }
+});
 
 // Menampilkan notifikasi jika ada pesan sukses atau error
 @if(session('success'))
