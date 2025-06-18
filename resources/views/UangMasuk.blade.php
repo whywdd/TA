@@ -23,10 +23,10 @@
                 <input 
                     type="date" 
                     name="Tanggal"
+                    id="tanggalInput"
                     class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
-                    min="{{ date('Y-m-d') }}"
-                    value="{{ date('Y-m-d') }}"
+                    readonly
                 >
             </div>
 
@@ -464,33 +464,23 @@ function validateBalance() {
     }
 }
 
-// Set default date to today
-document.querySelector('input[type="date"]').valueAsDate = new Date();
-
-// Tambahkan fungsi untuk inisialisasi Select2
-function initializeSelect2() {
-    $('.kategori-select').select2({
-        theme: 'bootstrap-5',
-        width: '100%',
-        placeholder: 'Pilih Kategori Akun',
-        allowClear: true,
-        language: {
-            noResults: function() {
-                return "Tidak ada hasil yang ditemukan";
-            },
-            searching: function() {
-                return "Mencari...";
-            }
-        }
-    });
+// Fungsi untuk mengupdate tanggal secara realtime
+function updateTanggal() {
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0];
+    document.getElementById('tanggalInput').value = formattedDate;
 }
 
-// Event listeners
+// Update tanggal setiap detik
+setInterval(updateTanggal, 1000);
+
+// Set tanggal awal saat halaman dimuat
 document.addEventListener('DOMContentLoaded', function() {
+    updateTanggal();
     console.log('Page loaded');
     validateBalance();
     toggleKeteranganInput();
-    initializeSelect2(); // Inisialisasi Select2 saat halaman dimuat
+    initializeSelect2();
 
     // Event listener untuk input nominal
     document.addEventListener('input', function(e) {
