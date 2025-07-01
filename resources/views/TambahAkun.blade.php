@@ -71,27 +71,8 @@
                     placeholder="Masukkan password"
                     required
                 >
-                <p class="mt-1 text-sm text-gray-500">Password harus minimal 8 karakter, mengandung huruf besar, huruf kecil, dan angka</p>
+                <p class="mt-1 text-sm text-gray-500">Password harus minimal 8 karakter.</p>
                 @error('password')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <!-- Tipe Pengguna -->
-            <div class="form-group">
-                <label class="block text-sm font-medium text-gray-700 mb-1">
-                    Tipe Pengguna <span class="text-red-600">*</span>
-                </label>
-                <select 
-                    name="tipe_pengguna"
-                    class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 @error('tipe_pengguna') border-red-500 @enderror"
-                    required
-                >
-                    <option value="">Pilih tipe pengguna</option>
-                    <option value="owner" {{ old('tipe_pengguna') == 'owner' ? 'selected' : '' }}>Owner</option>
-                    <option value="karyawan" {{ old('tipe_pengguna') == 'karyawan' ? 'selected' : '' }}>Karyawan</option>
-                </select>
-                @error('tipe_pengguna')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>

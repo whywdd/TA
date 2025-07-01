@@ -57,8 +57,7 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'nama' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:penggunas'],
-            'password' => ['required', Password::min(8)->mixedCase()->numbers()],
-            'tipe_pengguna' => ['required', 'in:owner,karyawan']
+            'password' => ['required', Password::min(8)],
         ]);
 
         if ($validator->fails()) {
@@ -72,7 +71,7 @@ class UserController extends Controller
                 'nama' => $request->nama,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'tipe_pengguna' => $request->tipe_pengguna
+                'tipe_pengguna' => 'karyawan'
             ]);
 
             return redirect()->route('User.index')
@@ -100,8 +99,7 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'nama' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:penggunas,email,'.$id],
-            'password' => ['nullable', Password::min(8)->mixedCase()->numbers()],
-            'tipe_pengguna' => ['required', 'in:owner,karyawan']
+            'password' => ['nullable', Password::min(8)],
         ]);
 
         if ($validator->fails()) {
@@ -116,7 +114,6 @@ class UserController extends Controller
             $data = [
                 'nama' => $request->nama,
                 'email' => $request->email,
-                'tipe_pengguna' => $request->tipe_pengguna
             ];
 
             if ($request->filled('password')) {
