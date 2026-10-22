@@ -19,6 +19,7 @@ use App\Http\Controllers\NeracasaldoController;
 use App\Http\Controllers\LabarugiController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\RiwayatController;
+use App\Http\Controllers\ManajemenStokController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -92,6 +93,14 @@ Route::middleware(['auth'])->group(function () {
 
     // Route untuk Riwayat
     Route::get('/riwayat', [RiwayatController::class, 'index'])->name('riwayat.index');
+
+    // Routes untuk Manajemen Stok
+    Route::get('/manajemen-stok', [ManajemenStokController::class, 'index'])->name('manajemen-stok.index');
+    Route::get('/manajemen-stok/create', [ManajemenStokController::class, 'create'])->name('manajemen-stok.create');
+    Route::post('/manajemen-stok', [ManajemenStokController::class, 'store'])->name('manajemen-stok.store');
+    Route::get('/manajemen-stok/{id}/edit', [ManajemenStokController::class, 'edit'])->name('manajemen-stok.edit');
+    Route::put('/manajemen-stok/{id}', [ManajemenStokController::class, 'update'])->name('manajemen-stok.update');
+    Route::delete('/manajemen-stok/{id}', [ManajemenStokController::class, 'destroy'])->name('manajemen-stok.destroy');
 });
 
 Route::get('/register', [RegisterController::class, 'index'])->name('register');

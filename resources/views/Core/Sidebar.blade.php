@@ -141,6 +141,12 @@
                     <span>Data Karyawan</span>
                 </a>
             </li>
+            <li class="mb-4">
+                <a href="{{ route('manajemen-stok.index') }}" class="nav-link flex items-center p-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-boxes mr-3"></i>
+                    <span>Manajemen Stok</span>
+                </a>
+            </li>
             <li class="mb-4 relative group">
                 <button class="nav-link w-full flex items-center justify-between p-2 rounded-lg hover:bg-blue-700 transition-colors">
                     <div class="flex items-center">
@@ -184,6 +190,12 @@
                 <a href="{{ route('uang-masuk.index') }}" class="nav-link flex items-center p-2 rounded-lg hover:bg-blue-700 transition-colors">
                     <i class="fas fa-money-bill-wave mr-3"></i>
                     <span>Bukti Transaksi</span>
+                </a>
+            </li>
+            <li class="mb-4">
+                <a href="{{ route('manajemen-stok.index') }}" class="nav-link flex items-center p-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-boxes mr-3"></i>
+                    <span>Manajemen Stok</span>
                 </a>
             </li>
             <!-- <li class="mb-4">
