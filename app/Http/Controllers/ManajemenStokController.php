@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LaporanModel;
+use App\Models\ManajemenStok;
 use Illuminate\Http\Request;
 
 class ManajemenStokController extends Controller
@@ -11,58 +13,7 @@ class ManajemenStokController extends Controller
      */
     public function index()
     {
-        // Dummy data untuk preview UI
-        $stoks = collect([
-            (object)[
-                'id' => 1,
-                'kode_barang' => 'ANG-BLL-001',
-                'nama_barang' => 'Anggrek Bulan Putih',
-                'kategori' => 'Indukan',
-                'satuan' => 'Pohon',
-                'stok' => 25,
-                'reorder_point' => 10,
-                'harga_beli' => 100000,
-                'harga_jual' => 150000,
-                'lokasi' => 'GH-01 / A-01'
-            ],
-            (object)[
-                'id' => 2,
-                'kode_barang' => 'ANG-BLL-002',
-                'nama_barang' => 'Anggrek Bulan Merah',
-                'kategori' => 'Indukan',
-                'satuan' => 'Pohon',
-                'stok' => 5,
-                'reorder_point' => 10,
-                'harga_beli' => 120000,
-                'harga_jual' => 175000,
-                'lokasi' => 'GH-01 / A-02'
-            ],
-            (object)[
-                'id' => 3,
-                'kode_barang' => 'SED-GLD-001',
-                'nama_barang' => 'Seedling Gold',
-                'kategori' => 'Seedling',
-                'satuan' => 'Pot',
-                'stok' => 50,
-                'reorder_point' => 20,
-                'harga_beli' => 25000,
-                'harga_jual' => 35000,
-                'lokasi' => 'GH-02 / B-01'
-            ],
-            (object)[
-                'id' => 4,
-                'kode_barang' => 'PUP-ORG-001',
-                'nama_barang' => 'Pupuk Organik Cair',
-                'kategori' => 'Sarana Produksi/Pupuk',
-                'satuan' => 'Botol',
-                'stok' => 100,
-                'reorder_point' => 30,
-                'harga_beli' => 15000,
-                'harga_jual' => 25000,
-                'lokasi' => 'Gudang / C-01'
-            ],
-        ]);
-
+        $stoks = ManajemenStok::all();
         return view('manajemen-stok.index', compact('stoks'));
     }
 
@@ -79,23 +30,81 @@ class ManajemenStokController extends Controller
      */
     public function store(Request $request)
     {
-        // Validasi (nanti akan dihubungkan dengan database)
+        // Validasi
         $validated = $request->validate([
-            'kode_barang' => 'required',
+            'kode_barang' => 'required|unique:manajemen_stok,kode_barang',
             'nama_barang' => 'required',
-            'kategori' => 'required',
             'satuan' => 'required',
-            'stok_awal' => 'required|numeric|min:0',
-            'reorder_point' => 'required|numeric|min:0',
+            'stok' => 'required|numeric|min:0',
             'harga_beli' => 'required|numeric|min:0',
-            'harga_jual' => 'required|numeric|min:0',
-            'akun_coa_persediaan' => 'required',
-            'akun_coa_penjualan' => 'required',
-            'akun_coa_hpp' => 'required',
+            'opsi_pembayaran' => 'required',
         ]);
 
-        // Dummy redirect untuk preview
-        return redirect()->route('manajemen-stok.index')->with('success', 'Data barang berhasil ditambahkan (UI Preview)');
+        // Akun COA otomatis
+        $akunCoa = 'persediaan barang dagang';
+
+        // Simpan ke manajemen_stok
+        $manajemenStok = ManajemenStok::create([
+            'kode_barang' => $request->kode_barang,
+            'nama_barang' => $request->nama_barang,
+            'satuan' => $request->satuan,
+            'stok' => $request->stok,
+            'harga_beli' => $request->harga_beli,
+            'akun_coa' => $akunCoa,
+            'deskripsi' => $request->deskripsi,
+        ]);
+
+        // Generate kode akun untuk jurnal
+        $kodePersediaan = $this->generateKodeAkun($akunCoa);
+        $totalNilai = $request->stok * $request->harga_beli;
+
+        // Generate jurnal otomatis berdasarkan opsi pembayaran
+        if ($request->opsi_pembayaran == 'tunai') {
+            // Bayar Tunai: Debit Persediaan, Kredit Kas
+            $laporanData = [
+                'Tanggal' => date('Y-m-d'),
+                'keterangan' => 'Pembelian - ' . $request->nama_barang . ' (' . $request->satuan . ') - Bayar Tunai',
+                'kode' => $kodePersediaan,
+                'kategori' => $request->akun_coa,
+                'uang_masuk' => $totalNilai,
+                'uang_keluar' => 0,
+                'kode2' => '1101', // Kas
+                'kategori2' => 'kas',
+                'uang_masuk2' => 0,
+                'uang_keluar2' => $totalNilai,
+            ];
+        } else {
+            // Belum Bayar: Debit Persediaan, Kredit Utang Usaha
+            $laporanData = [
+                'Tanggal' => date('Y-m-d'),
+                'keterangan' => 'Pembelian - ' . $request->nama_barang . ' (' . $request->satuan . ') - Belum Bayar',
+                'kode' => $kodePersediaan,
+                'kategori' => $request->akun_coa,
+                'uang_masuk' => $totalNilai,
+                'uang_keluar' => 0,
+                'kode2' => '2101', // Utang Usaha
+                'kategori2' => 'utang usaha',
+                'uang_masuk2' => 0,
+                'uang_keluar2' => $totalNilai,
+            ];
+        }
+
+        // Simpan jurnal ke laporan_transaksis
+        LaporanModel::create($laporanData);
+
+        return redirect()->route('manajemen-stok.index')->with('success', 'Data barang berhasil ditambahkan dan jurnal pembelian otomatis dicatat');
+    }
+
+    private function generateKodeAkun($kategori)
+    {
+        switch ($kategori) {
+            case 'persediaan barang dagang':
+                return '111007';
+            case 'persediaan bahan':
+                return '111008';
+            default:
+                return '111007';
+        }
     }
 
     /**
@@ -103,26 +112,7 @@ class ManajemenStokController extends Controller
      */
     public function edit($id)
     {
-        // Dummy data untuk preview UI
-        $stok = (object)[
-            'id' => $id,
-            'kode_barang' => 'ANG-BLL-001',
-            'nama_barang' => 'Anggrek Bulan Putih',
-            'kategori' => 'Indukan',
-            'satuan' => 'Pohon',
-            'stok' => 25,
-            'reorder_point' => 10,
-            'harga_beli' => 100000,
-            'harga_jual' => 150000,
-            'akun_coa_persediaan' => 'persediaan barang',
-            'akun_coa_penjualan' => 'pendapatan penjualan',
-            'akun_coa_hpp' => 'beban lain',
-            'lokasi_greenhouse' => 'GH-01',
-            'rak' => 'A-01',
-            'foto_produk' => null,
-            'deskripsi' => 'Anggrek bulan putih kualitas premium'
-        ];
-
+        $stok = ManajemenStok::findOrFail($id);
         return view('manajemen-stok.edit', compact('stok'));
     }
 
@@ -131,22 +121,25 @@ class ManajemenStokController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // Validasi (nanti akan dihubungkan dengan database)
+        // Validasi (stok tidak divalidasi karena read-only di edit)
         $validated = $request->validate([
             'kode_barang' => 'required',
             'nama_barang' => 'required',
-            'kategori' => 'required',
             'satuan' => 'required',
-            'reorder_point' => 'required|numeric|min:0',
             'harga_beli' => 'required|numeric|min:0',
-            'harga_jual' => 'required|numeric|min:0',
-            'akun_coa_persediaan' => 'required',
-            'akun_coa_penjualan' => 'required',
-            'akun_coa_hpp' => 'required',
         ]);
 
-        // Dummy redirect untuk preview
-        return redirect()->route('manajemen-stok.index')->with('success', 'Data barang berhasil diperbarui (UI Preview)');
+        $stok = ManajemenStok::findOrFail($id);
+        $stok->update([
+            'kode_barang' => $request->kode_barang,
+            'nama_barang' => $request->nama_barang,
+            'satuan' => $request->satuan,
+            'harga_beli' => $request->harga_beli,
+            'akun_coa' => 'persediaan barang dagang', // Otomatis
+            'deskripsi' => $request->deskripsi,
+        ]);
+
+        return redirect()->route('manajemen-stok.index')->with('success', 'Data barang berhasil diperbarui');
     }
 
     /**
@@ -154,7 +147,9 @@ class ManajemenStokController extends Controller
      */
     public function destroy($id)
     {
-        // Dummy redirect untuk preview
-        return redirect()->route('manajemen-stok.index')->with('success', 'Data barang berhasil dihapus (UI Preview)');
+        $stok = ManajemenStok::findOrFail($id);
+        $stok->delete();
+
+        return redirect()->route('manajemen-stok.index')->with('success', 'Data barang berhasil dihapus');
     }
 }

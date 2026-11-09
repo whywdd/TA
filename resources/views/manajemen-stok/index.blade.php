@@ -38,8 +38,8 @@
                     <i class="fas fa-exclamation-triangle text-yellow-600 text-xl"></i>
                 </div>
                 <div>
-                    <p class="text-sm text-gray-600">Stok Rendah</p>
-                    <p class="text-xl font-bold text-gray-800">2</p>
+                    <p class="text-sm text-gray-600">Stok Kosong</p>
+                    <p class="text-xl font-bold text-gray-800">{{ $stoks->where('stok', 0)->count() }}</p>
                 </div>
             </div>
         </div>
@@ -50,7 +50,7 @@
                 </div>
                 <div>
                     <p class="text-sm text-gray-600">Total Nilai</p>
-                    <p class="text-xl font-bold text-gray-800">Rp 5.250.000</p>
+                    <p class="text-xl font-bold text-gray-800">Rp {{ number_format($stoks->sum(function($item) { return ($item->stok ?? 0) * ($item->harga_beli ?? 0); }), 0, ',', '.') }}</p>
                 </div>
             </div>
         </div>
@@ -84,12 +84,10 @@
                     <tr class="bg-gray-100">
                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">No</th>
                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Kode Barang</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Nama Barang</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Kategori</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Jenis Anggrek</th>
                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Satuan</th>
                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Stok</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Min. Stok</th>
-                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Harga Jual</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Harga Beli</th>
                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Nilai Persediaan</th>
                         <th class="px-4 py-3 text-center text-sm font-semibold text-gray-700">Aksi</th>
                     </tr>
@@ -101,19 +99,13 @@
                             <td class="px-4 py-3 text-sm">{{ $index + 1 }}</td>
                             <td class="px-4 py-3 text-sm font-medium">{{ $stok->kode_barang ?? '-' }}</td>
                             <td class="px-4 py-3 text-sm">{{ $stok->nama_barang ?? '-' }}</td>
-                            <td class="px-4 py-3 text-sm">
-                                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                                    {{ $stok->kategori ?? '-' }}
-                                </span>
-                            </td>
                             <td class="px-4 py-3 text-sm">{{ $stok->satuan ?? '-' }}</td>
                             <td class="px-4 py-3 text-sm">
-                                <span class="px-2 py-1 rounded-full text-xs {{ ($stok->stok ?? 0) <= ($stok->reorder_point ?? 0) ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
+                                <span class="px-2 py-1 rounded-full text-xs {{ ($stok->stok ?? 0) <= 0 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
                                     {{ $stok->stok ?? 0 }}
                                 </span>
                             </td>
-                            <td class="px-4 py-3 text-sm">{{ $stok->reorder_point ?? '-' }}</td>
-                            <td class="px-4 py-3 text-sm">Rp {{ number_format($stok->harga_jual ?? 0, 0, ',', '.') }}</td>
+                            <td class="px-4 py-3 text-sm">Rp {{ number_format($stok->harga_beli ?? 0, 0, ',', '.') }}</td>
                             <td class="px-4 py-3 text-sm font-medium text-green-600">
                                 Rp {{ number_format(($stok->stok ?? 0) * ($stok->harga_beli ?? 0), 0, ',', '.') }}
                             </td>
@@ -131,7 +123,7 @@
                         @endforeach
                     @else
                         <tr>
-                            <td colspan="10" class="px-4 py-8 text-center text-gray-500">
+                            <td colspan="8" class="px-4 py-8 text-center text-gray-500">
                                 <i class="fas fa-box-open text-4xl mb-2"></i>
                                 <p>Belum ada data barang</p>
                             </td>
@@ -190,8 +182,22 @@ function deleteStok(id) {
         cancelButtonText: 'Batal'
     }).then((result) => {
         if (result.isConfirmed) {
-            // Akan dihubungkan dengan controller nanti
-            window.location.href = `/manajemen-stok/${id}/delete`;
+            // Form submit untuk DELETE
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/manajemen-stok/${id}`;
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = '{{ csrf_token() }}';
+            const methodInput = document.createElement('input');
+            methodInput.type = 'hidden';
+            methodInput.name = '_method';
+            methodInput.value = 'DELETE';
+            form.appendChild(csrfInput);
+            form.appendChild(methodInput);
+            document.body.appendChild(form);
+            form.submit();
         }
     });
 }
