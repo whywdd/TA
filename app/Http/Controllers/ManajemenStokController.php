@@ -143,6 +143,10 @@ class ManajemenStokController extends Controller
         $hargaBeli = str_replace('.', '', $request->harga_beli);
 
         $stok = ManajemenStok::findOrFail($id);
+        $oldNamaBarang = $stok->nama_barang;
+        $oldHargaBeli = $stok->harga_beli;
+        $oldSatuan = $stok->satuan;
+
         $stok->update([
             'nama_barang' => $request->nama_barang,
             'satuan' => $request->satuan,
@@ -152,7 +156,21 @@ class ManajemenStokController extends Controller
             'deskripsi' => $request->deskripsi,
         ]);
 
-        return redirect()->route('manajemen-stok.index')->with('success', 'Data barang berhasil diperbarui');
+        // Update jurnal terkait di laporan_transaksis
+        $totalNilaiBaru = $stok->stok * $hargaBeli;
+
+        // Cari jurnal yang terkait dengan barang ini
+        $relatedJournals = LaporanModel::where('keterangan', 'like', '%Pembelian - ' . $oldNamaBarang . '%')->get();
+
+        foreach ($relatedJournals as $journal) {
+            // Update nominal di jurnal
+            $journal->update([
+                'uang_masuk' => $totalNilaiBaru,
+                'uang_keluar2' => $totalNilaiBaru,
+            ]);
+        }
+
+        return redirect()->route('manajemen-stok.index')->with('success', 'Data barang dan jurnal pembelian berhasil diperbarui');
     }
 
     /**
@@ -161,8 +179,18 @@ class ManajemenStokController extends Controller
     public function destroy($id)
     {
         $stok = ManajemenStok::findOrFail($id);
+        $namaBarang = $stok->nama_barang;
+
+        // Hapus jurnal terkait di laporan_transaksis
+        $relatedJournals = LaporanModel::where('keterangan', 'like', '%Pembelian - ' . $namaBarang . '%')->get();
+
+        foreach ($relatedJournals as $journal) {
+            $journal->delete();
+        }
+
+        // Hapus barang
         $stok->delete();
 
-        return redirect()->route('manajemen-stok.index')->with('success', 'Data barang berhasil dihapus');
+        return redirect()->route('manajemen-stok.index')->with('success', 'Data barang dan jurnal pembelian berhasil dihapus');
     }
 }
