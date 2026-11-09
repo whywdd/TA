@@ -85,6 +85,7 @@
                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">No</th>
                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Kode Barang</th>
                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Jenis Anggrek</th>
+                        <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Status Tahap</th>
                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Satuan</th>
                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Stok</th>
                         <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Harga Beli</th>
@@ -99,6 +100,11 @@
                             <td class="px-4 py-3 text-sm">{{ $index + 1 }}</td>
                             <td class="px-4 py-3 text-sm font-medium">{{ $stok->kode_barang ?? '-' }}</td>
                             <td class="px-4 py-3 text-sm">{{ $stok->nama_barang ?? '-' }}</td>
+                            <td class="px-4 py-3 text-sm">
+                                <span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                                    {{ ucfirst($stok->status_tahap ?? '-') }}
+                                </span>
+                            </td>
                             <td class="px-4 py-3 text-sm">{{ $stok->satuan ?? '-' }}</td>
                             <td class="px-4 py-3 text-sm">
                                 <span class="px-2 py-1 rounded-full text-xs {{ ($stok->stok ?? 0) <= 0 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
@@ -123,7 +129,7 @@
                         @endforeach
                     @else
                         <tr>
-                            <td colspan="8" class="px-4 py-8 text-center text-gray-500">
+                            <td colspan="9" class="px-4 py-8 text-center text-gray-500">
                                 <i class="fas fa-box-open text-4xl mb-2"></i>
                                 <p>Belum ada data barang</p>
                             </td>

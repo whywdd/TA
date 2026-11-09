@@ -35,22 +35,19 @@
             </h2>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Kode Barang -->
+                <!-- Kode Barang (Read-only - Auto Generate) -->
                 <div class="form-group">
                     <label class="block text-sm font-medium text-gray-700 mb-1">
-                        Kode/SKU Barang <span class="text-red-600">*</span>
+                        Kode/SKU Barang
                     </label>
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         name="kode_barang"
-                        class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Contoh: ANG-001"
-                        value="{{ old('kode_barang', $stok->kode_barang ?? '') }}"
-                        required
+                        class="w-full border rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed"
+                        value="{{ $stok->kode_barang }}"
+                        readonly
                     >
-                    @error('kode_barang')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                    @enderror
+                    <p class="text-xs text-gray-500 mt-1">Kode otomatis di-generate sistem</p>
                 </div>
 
                 <!-- Jenis Anggrek -->
@@ -58,8 +55,8 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Jenis Anggrek <span class="text-red-600">*</span>
                     </label>
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         name="nama_barang"
                         class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Contoh: Phalaenopsis White, Dendrobium Red, dll"
@@ -76,7 +73,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">
                         Satuan <span class="text-red-600">*</span>
                     </label>
-                    <select 
+                    <select
                         name="satuan"
                         class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
@@ -92,6 +89,29 @@
                         <option value="Rumpun" {{ old('satuan', $stok->satuan ?? '') == 'Rumpun' ? 'selected' : '' }}>Rumpun (Kelompok)</option>
                     </select>
                     @error('satuan')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Status Tahap -->
+                <div class="form-group">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Status Tahap <span class="text-red-600">*</span>
+                    </label>
+                    <select
+                        name="status_tahap"
+                        class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                    >
+                        <option value="">Pilih Status Tahap</option>
+                        <option value="bibit" {{ old('status_tahap', $stok->status_tahap ?? '') == 'bibit' ? 'selected' : '' }}>Bibit</option>
+                        <option value="remaja" {{ old('status_tahap', $stok->status_tahap ?? '') == 'remaja' ? 'selected' : '' }}>Remaja</option>
+                        <option value="indukan" {{ old('status_tahap', $stok->status_tahap ?? '') == 'indukan' ? 'selected' : '' }}>Indukan</option>
+                        <option value="siap_bunga" {{ old('status_tahap', $stok->status_tahap ?? '') == 'siap_bunga' ? 'selected' : '' }}>Siap Bunga</option>
+                        <option value="bunga_potong" {{ old('status_tahap', $stok->status_tahap ?? '') == 'bunga_potong' ? 'selected' : '' }}>Bunga Potong</option>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Tahap pertumbuhan anggrek saat ini</p>
+                    @error('status_tahap')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
@@ -136,13 +156,13 @@
                     </label>
                     <div class="relative">
                         <span class="absolute left-3 top-2 text-gray-600">Rp</span>
-                        <input 
-                            type="number" 
+                        <input
+                            type="text"
                             name="harga_beli"
                             class="w-full border rounded-lg pl-10 pr-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="0"
-                            min="0"
                             value="{{ old('harga_beli', $stok->harga_beli) }}"
+                            oninput="formatNumberInput(this)"
                             required
                         >
                     </div>
@@ -203,6 +223,16 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
+function formatNumberInput(input) {
+    // Hapus semua karakter kecuali angka
+    let value = input.value.replace(/\D/g, '');
+    if (value !== '') {
+        // Format dengan titik ribuan
+        value = new Intl.NumberFormat('id-ID').format(value);
+    }
+    input.value = value;
+}
+
 // Notifikasi
 @if(session('success'))
     Swal.fire({

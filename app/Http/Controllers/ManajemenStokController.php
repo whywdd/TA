@@ -32,31 +32,41 @@ class ManajemenStokController extends Controller
     {
         // Validasi
         $validated = $request->validate([
-            'kode_barang' => 'required|unique:manajemen_stok,kode_barang',
             'nama_barang' => 'required',
             'satuan' => 'required',
             'stok' => 'required|numeric|min:0',
-            'harga_beli' => 'required|numeric|min:0',
+            'harga_beli' => 'required',
+            'status_tahap' => 'required',
             'opsi_pembayaran' => 'required',
         ]);
+
+        // Auto generate SKU
+        $lastSku = ManajemenStok::orderBy('id', 'desc')->first();
+        $lastNumber = $lastSku ? (int)substr($lastSku->kode_barang, -3) : 0;
+        $newNumber = str_pad($lastNumber + 1, 3, '0', STR_PAD_LEFT);
+        $kodeBarang = 'SKU-' . $newNumber;
 
         // Akun COA otomatis
         $akunCoa = 'persediaan barang dagang';
 
+        // Convert format Indonesia ke angka murni (hapus titik ribuan)
+        $hargaBeli = str_replace('.', '', $request->harga_beli);
+
         // Simpan ke manajemen_stok
         $manajemenStok = ManajemenStok::create([
-            'kode_barang' => $request->kode_barang,
+            'kode_barang' => $kodeBarang,
             'nama_barang' => $request->nama_barang,
             'satuan' => $request->satuan,
             'stok' => $request->stok,
-            'harga_beli' => $request->harga_beli,
+            'harga_beli' => $hargaBeli,
             'akun_coa' => $akunCoa,
+            'status_tahap' => $request->status_tahap,
             'deskripsi' => $request->deskripsi,
         ]);
 
         // Generate kode akun untuk jurnal
         $kodePersediaan = $this->generateKodeAkun($akunCoa);
-        $totalNilai = $request->stok * $request->harga_beli;
+        $totalNilai = $request->stok * $hargaBeli;
 
         // Generate jurnal otomatis berdasarkan opsi pembayaran
         if ($request->opsi_pembayaran == 'tunai') {
@@ -64,11 +74,11 @@ class ManajemenStokController extends Controller
             $laporanData = [
                 'Tanggal' => date('Y-m-d'),
                 'keterangan' => 'Pembelian - ' . $request->nama_barang . ' (' . $request->satuan . ') - Bayar Tunai',
-                'kode' => $kodePersediaan,
-                'kategori' => $request->akun_coa,
+                'kode' => '111007', // Persediaan Barang Dagang
+                'kategori' => $akunCoa,
                 'uang_masuk' => $totalNilai,
                 'uang_keluar' => 0,
-                'kode2' => '1101', // Kas
+                'kode2' => '111001', // Kas
                 'kategori2' => 'kas',
                 'uang_masuk2' => 0,
                 'uang_keluar2' => $totalNilai,
@@ -78,11 +88,11 @@ class ManajemenStokController extends Controller
             $laporanData = [
                 'Tanggal' => date('Y-m-d'),
                 'keterangan' => 'Pembelian - ' . $request->nama_barang . ' (' . $request->satuan . ') - Belum Bayar',
-                'kode' => $kodePersediaan,
-                'kategori' => $request->akun_coa,
+                'kode' => '111007', // Persediaan Barang Dagang
+                'kategori' => $akunCoa,
                 'uang_masuk' => $totalNilai,
                 'uang_keluar' => 0,
-                'kode2' => '2101', // Utang Usaha
+                'kode2' => '121001', // Utang Usaha
                 'kategori2' => 'utang usaha',
                 'uang_masuk2' => 0,
                 'uang_keluar2' => $totalNilai,
@@ -123,19 +133,22 @@ class ManajemenStokController extends Controller
     {
         // Validasi (stok tidak divalidasi karena read-only di edit)
         $validated = $request->validate([
-            'kode_barang' => 'required',
             'nama_barang' => 'required',
             'satuan' => 'required',
-            'harga_beli' => 'required|numeric|min:0',
+            'harga_beli' => 'required',
+            'status_tahap' => 'required',
         ]);
+
+        // Convert format Indonesia ke angka murni (hapus titik ribuan)
+        $hargaBeli = str_replace('.', '', $request->harga_beli);
 
         $stok = ManajemenStok::findOrFail($id);
         $stok->update([
-            'kode_barang' => $request->kode_barang,
             'nama_barang' => $request->nama_barang,
             'satuan' => $request->satuan,
-            'harga_beli' => $request->harga_beli,
+            'harga_beli' => $hargaBeli,
             'akun_coa' => 'persediaan barang dagang', // Otomatis
+            'status_tahap' => $request->status_tahap,
             'deskripsi' => $request->deskripsi,
         ]);
 

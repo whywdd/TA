@@ -18,6 +18,7 @@ class ManajemenStok extends Model
         'stok',
         'harga_beli',
         'akun_coa',
+        'status_tahap',
         'deskripsi',
     ];
 }
