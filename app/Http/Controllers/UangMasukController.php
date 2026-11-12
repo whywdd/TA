@@ -5,31 +5,31 @@ namespace App\Http\Controllers;
 use App\Models\UangMasukModel; // Import model
 use App\Models\GajiModel; // Import model gaji
 use App\Models\LaporanModel; // Import model laporan
+use App\Models\ManajemenStok; // Import model manajemen stok
 use Illuminate\Http\Request;
 
 class UangMasukController extends Controller
 {
     public function index()
     {
-        // Ambil data karyawan untuk dropdown
         $karyawans = GajiModel::whereNotNull('gaji')
             ->where('gaji', '>', 0)
             ->select('id', 'nama', 'jabatan', 'gaji')
             ->get();
-            
-        // Ambil tipe pengguna dari user yang sedang login
+
+        $manajemenStok = ManajemenStok::all();
         $tipe_pengguna = auth()->user()->tipe_pengguna;
-            
-        return view('UangMasuk', compact('karyawans', 'tipe_pengguna'));
+
+        return view('UangMasuk', compact('karyawans', 'manajemenStok', 'tipe_pengguna'));
     }
 
     public function store(Request $request)
     {
         try {
-            // Debug untuk melihat data yang diterima
-            \Log::info('Request Data:', $request->all());
+            if ($request->has('barang_id')) {
+                return $this->storePenjualanAnggrek($request);
+            }
 
-            // Validasi input
             $request->validate([
                 'Tanggal' => 'required|date',
                 'keterangan_type' => 'required|in:karyawan,manual',
@@ -38,13 +38,11 @@ class UangMasukController extends Controller
                 'nominal' => 'required|array'
             ]);
 
-            // Gabungkan keterangan berdasarkan tipe input
             $keterangan = '';
             if ($request->keterangan_type === 'karyawan') {
                 if (empty($request->keterangan)) {
                     throw new \Exception('Karyawan harus dipilih');
                 }
-                
                 $keterangan = $request->keterangan;
                 if ($request->filled('keterangan_tambahan')) {
                     $keterangan .= ' - ' . $request->keterangan_tambahan;
@@ -56,7 +54,6 @@ class UangMasukController extends Controller
                 $keterangan = $request->keterangan_manual;
             }
 
-            // Proses data
             $data = [
                 'Tanggal' => $request->Tanggal,
                 'keterangan' => $keterangan,
@@ -67,7 +64,6 @@ class UangMasukController extends Controller
                 'uang_keluar' => 0
             ];
 
-            // Tambahkan data untuk rekening tambahan jika ada
             for ($i = 1; $i < count($request->kategori); $i++) {
                 if ($request->posisi[$i] === 'debit') {
                     $data["uang_masuk" . ($i + 1)] = str_replace(['.', ','], '', $request->nominal[$i]);
@@ -80,20 +76,16 @@ class UangMasukController extends Controller
                 }
             }
 
-            // Simpan data
-            $laporan = LaporanModel::create($data);
+            LaporanModel::create($data);
 
-            // Catat riwayat
             $riwayatController = new RiwayatController();
-            $keteranganRiwayat = "Input transaksi baru - Tanggal: " . date('d/m/Y', strtotime($request->Tanggal)) . 
+            $keteranganRiwayat = "Input transaksi baru - Tanggal: " . date('d/m/Y', strtotime($request->Tanggal)) .
                                 ", Keterangan: " . $keterangan;
-            
             if ($request->keterangan_type === 'karyawan') {
                 $keteranganRiwayat .= ", Nama Karyawan: " . $request->keterangan;
             }
-            
             $keteranganRiwayat .= ", Kategori: " . implode(", ", array_filter($request->kategori));
-            
+
             $riwayatController->store(
                 auth()->id(),
                 auth()->user()->nama,
@@ -105,6 +97,57 @@ class UangMasukController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error in UangMasukController@store: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage());
+        }
+    }
+
+    private function storePenjualanAnggrek(Request $request)
+    {
+        try {
+            $request->validate([
+                'barang_id' => 'required',
+                'jumlah_jual' => 'required|numeric|min:1',
+                'harga_jual' => 'required',
+            ]);
+
+            $barang = ManajemenStok::findOrFail($request->barang_id);
+
+            if ($barang->stok < $request->jumlah_jual) {
+                return redirect()->back()->with('error', 'Stok tidak mencukupi! Stok tersedia: ' . $barang->stok);
+            }
+
+            $hargaJual = str_replace(['.', ','], '', $request->harga_jual);
+            $totalJual = $request->jumlah_jual * $hargaJual;
+            $totalHPP = $request->jumlah_jual * $barang->harga_beli;
+
+            $barang->stok -= $request->jumlah_jual;
+            $barang->save();
+
+            $data = [
+                'Tanggal' => date('Y-m-d'),
+                'keterangan' => 'Penjualan Anggrek - ' . $barang->nama_barang . ' (' . $barang->satuan . ')',
+                'kode' => '111001',
+                'kategori' => 'kas',
+                'uang_masuk' => $totalJual,
+                'uang_keluar' => 0,
+                'kode2' => '411001',
+                'kategori2' => 'pendapatan penjualan',
+                'uang_masuk2' => 0,
+                'uang_keluar2' => $totalJual,
+                'kode3' => '221007',
+                'kategori3' => 'beban pokok penjualan',
+                'uang_masuk3' => $totalHPP,
+                'uang_keluar3' => 0,
+                'kode4' => '111007',
+                'kategori4' => 'persediaan barang',
+                'uang_masuk4' => 0,
+                'uang_keluar4' => $totalHPP,
+            ];
+
+            LaporanModel::create($data);
+
+            return redirect()->back()->with('success', 'Penjualan berhasil! Stok dikurangi, 4 jurnal otomatis dibuat');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal: ' . $e->getMessage());
         }
     }
 

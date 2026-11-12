@@ -15,26 +15,27 @@ class LabarugiController extends Controller
         $kategori = trim(strtolower($kategori));
         
         // Pendapatan Operasional (41)
-        if (str_contains($kategori, 'pendapatan penjualan')) return '241001';
-        if (str_contains($kategori, 'pendapatan jasa')) return '241002';
+        if (str_contains($kategori, 'pendapatan penjualan')) return '411001';
+        if (str_contains($kategori, 'pendapatan jasa')) return '411002';
         
         // Pendapatan Non-Operasional (42)
-        if (str_contains($kategori, 'pendapatan bunga')) return '242001';
-        if (str_contains($kategori, 'pendapatan sewa')) return '242002';
-        if (str_contains($kategori, 'pendapatan komisi')) return '242003';
-        if (str_contains($kategori, 'pendapatan lain')) return '242004';
+        if (str_contains($kategori, 'pendapatan bunga')) return '412001';
+        if (str_contains($kategori, 'pendapatan sewa')) return '412002';
+        if (str_contains($kategori, 'pendapatan komisi')) return '412003';
+        if (str_contains($kategori, 'pendapatan lain')) return '412004';
         
-        // Beban Operasional (51)
-        if (str_contains($kategori, 'beban gaji')) return '251001';
-        if (str_contains($kategori, 'beban sewa')) return '251002';
-        if (str_contains($kategori, 'beban utilitas')) return '251003';
-        if (str_contains($kategori, 'beban penyusutan')) return '251004';
-        if (str_contains($kategori, 'beban supplies')) return '251005';
-        if (str_contains($kategori, 'beban iklan')) return '251006';
+        // Beban Operasional (22)
+        if (str_contains($kategori, 'beban gaji')) return '221001';
+        if (str_contains($kategori, 'beban sewa')) return '221002';
+        if (str_contains($kategori, 'beban utilitas')) return '221003';
+        if (str_contains($kategori, 'beban penyusutan')) return '221004';
+        if (str_contains($kategori, 'beban supplies')) return '221005';
+        if (str_contains($kategori, 'beban iklan')) return '221006';
+        if (str_contains($kategori, 'beban pokok penjualan')) return '221007';
         
-        // Beban Non-Operasional (52)
-        if (str_contains($kategori, 'beban bunga')) return '252001';
-        if (str_contains($kategori, 'beban lain')) return '252002';
+        // Beban Non-Operasional (22)
+        if (str_contains($kategori, 'beban bunga')) return '222001';
+        if (str_contains($kategori, 'beban lain')) return '222002';
         
         return null;
     }
@@ -114,13 +115,16 @@ class LabarugiController extends Controller
                 'nominal' => $nominal
             ];
 
-            if (str_starts_with($kodeAkun, '24')) {
+            // Support kedua format kode (lama dan baru)
+            // Pendapatan: 24xx (lama) atau 41xx (baru)
+            // Beban: 25xx (lama) atau 22xx (baru)
+            if (str_starts_with($kodeAkun, '24') || str_starts_with($kodeAkun, '41') || str_starts_with($kodeAkun, '42')) {
                 if (isset($pendapatan[$kategori])) {
                     $pendapatan[$kategori]['nominal'] += $nominal;
                 } else {
                     $pendapatan[$kategori] = $data;
                 }
-            } elseif (str_starts_with($kodeAkun, '25')) {
+            } elseif (str_starts_with($kodeAkun, '25') || str_starts_with($kodeAkun, '22')) {
                 if (isset($beban[$kategori])) {
                     $beban[$kategori]['nominal'] += $nominal;
                 } else {

@@ -90,6 +90,7 @@
         .dropdown-menu {
             transform-origin: top;
             transition: transform 0.2s ease-in-out;
+            z-index: 100;
         }
 
         .dropdown-menu.hidden {
@@ -307,6 +308,8 @@
                     <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-500 hover:text-blue-600">Profil</a>
                     <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-500 hover:text-blue-600">Pengaturan</a>
                     <a href="#" class="block px-3 py-2 rounded-md text-base font-medium text-gray-500 hover:text-blue-600">Bantuan</a>
+</body>
+</html>
                 </div>
             </div>
         </nav>
@@ -317,16 +320,35 @@
         </div>
     </div>
 
-    <!-- JavaScript -->
     <script>
-        // Mobile Menu Toggle
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const mobileMenu = document.getElementById('mobile-menu');
-        const sidebar = document.querySelector('.sidebar');
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const navbar = document.querySelector('.navbar');
 
-        mobileMenuButton.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-            sidebar.classList.toggle('active');
+            sidebar.classList.toggle('hidden');
+            mainContent.classList.toggle('expanded');
+            navbar.classList.toggle('expanded');
+        }
+
+        // Toggle dropdown menu
+        document.querySelectorAll('.group').forEach(group => {
+            const button = group.querySelector('button');
+            const dropdown = group.querySelector('.dropdown-menu');
+
+            if (button && dropdown) {
+                button.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    dropdown.classList.toggle('hidden');
+                });
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function() {
+            document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                menu.classList.add('hidden');
+            });
         });
 
         // Add active class to current nav link
@@ -338,32 +360,9 @@
                 link.classList.add('active');
             }
         });
-
-        // Dropdown menu functionality
-        document.querySelectorAll('.group').forEach(dropdown => {
-            const button = dropdown.querySelector('button');
-            const menu = dropdown.querySelector('.dropdown-menu');
-            
-            button.addEventListener('click', (e) => {
-                e.preventDefault();
-                menu.classList.toggle('hidden');
-            });
-
-            // Close dropdown when clicking outside
-            document.addEventListener('click', (e) => {
-                if (!dropdown.contains(e.target)) {
-                    menu.classList.add('hidden');
-                }
-            });
-        });
-
-        // Close mobile menu when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!sidebar.contains(e.target) && !mobileMenuButton.contains(e.target)) {
-                sidebar.classList.remove('active');
-                mobileMenu.classList.add('hidden');
-            }
-        });
+    </script>
+</body>
+</html>
     </script>
 </body>
 </html>

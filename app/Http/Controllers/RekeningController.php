@@ -125,10 +125,16 @@ class RekeningController extends Controller
 
     private function generateKode($kategori)
     {
+        // Normalisasi kategori untuk case-insensitive dan trim
+        $kategori = strtolower(trim($kategori));
+        
+        // Debug log
+        \Log::info('Generating kode for kategori: [' . $kategori . ']');
+        
         // Ambil data-kode dari kategori yang dipilih
         $kodeAkun = '';
         
-        switch (strtolower($kategori)) {
+        switch ($kategori) {
             // Aset Lancar (11)
             case 'kas':
                 $kodeAkun = '111001';
@@ -149,6 +155,7 @@ class RekeningController extends Controller
                 $kodeAkun = '111006';
                 break;
             case 'persediaan barang':
+            case 'persediaan barang dagang':
                 $kodeAkun = '111007';
                 break;
             case 'persediaan bahan':
@@ -158,6 +165,7 @@ class RekeningController extends Controller
                 $kodeAkun = '111009';
                 break;
             case 'asuransi dibayar_dimuka':
+            case 'asuransi dibayar dimuka':
                 $kodeAkun = '111010';
                 break;
             case 'perlengkapan kantor':
@@ -232,69 +240,72 @@ class RekeningController extends Controller
     
             // Modal (Ekuitas) (31)
             case 'modal pemilik':
-                $kodeAkun = '131001';
+                $kodeAkun = '311001';
                 break;
             case 'modal saham':
-                $kodeAkun = '131002';
+                $kodeAkun = '311002';
                 break;
             case 'laba ditahan':
-                $kodeAkun = '131003';
+                $kodeAkun = '311003';
                 break;
             case 'dividen':
-                $kodeAkun = '131004';
+                $kodeAkun = '311004';
                 break;
             case 'prive':
-                $kodeAkun = '131005';
+                $kodeAkun = '311005';
                 break;
     
             // Pendapatan Operasional (41)
             case 'pendapatan penjualan':
-                $kodeAkun = '241001';
+                $kodeAkun = '411001';
                 break;
             case 'pendapatan jasa':
-                $kodeAkun = '241002';
+                $kodeAkun = '411002';
                 break;
-    
+
             // Pendapatan Non-Operasional (42)
             case 'pendapatan bunga':
-                $kodeAkun = '242001';
+                $kodeAkun = '412001';
                 break;
             case 'pendapatan sewa':
-                $kodeAkun = '242002';
+                $kodeAkun = '412002';
                 break;
             case 'pendapatan komisi':
-                $kodeAkun = '242003';
+                $kodeAkun = '412003';
                 break;
             case 'pendapatan lain':
-                $kodeAkun = '242004';
+                $kodeAkun = '412004';
                 break;
-    
-            // Beban Operasional (51)
+
+            // Beban Operasional (22)
             case 'beban gaji':
-                $kodeAkun = '251001';
+                $kodeAkun = '221001';
                 break;
             case 'beban sewa':
-                $kodeAkun = '251002';
+                $kodeAkun = '221002';
                 break;
             case 'beban utilitas':
-                $kodeAkun = '251003';
+                $kodeAkun = '221003';
                 break;
             case 'beban penyusutan':
-                $kodeAkun = '251004';
+                $kodeAkun = '221004';
                 break;
             case 'beban supplies':
-                $kodeAkun = '251005';
+                $kodeAkun = '221005';
                 break;
             case 'beban iklan':
-                $kodeAkun = '251006';
+                $kodeAkun = '221006';
                 break;
-    
-            // Beban Non-Operasional (52)
+            case 'beban pokok penjualan':
+                $kodeAkun = '221007';
+                break;
+
+            // Beban Non-Operasional (22)
             case 'beban bunga':
-                $kodeAkun = '252001';
+                $kodeAkun = '222001';
                 break;
             case 'beban lain':
-                $kodeAkun = '252002';
+                $kodeAkun = '222002';
                 break;
     
             default:

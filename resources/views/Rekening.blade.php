@@ -8,9 +8,9 @@
                 return 'AKTIVA';
             } else if (str_starts_with($kode, '121') || str_starts_with($kode, '122') || str_starts_with($kode, '131')) {
                 return 'PASIVA';
-            } else if (str_starts_with($kode, '241') || str_starts_with($kode, '242')) {
+            } else if (str_starts_with($kode, '411') || str_starts_with($kode, '412')) {
                 return 'PENDAPATAN';
-            } else if (str_starts_with($kode, '251') || str_starts_with($kode, '252')) {
+            } else if (str_starts_with($kode, '221') || str_starts_with($kode, '222')) {
                 return 'BEBAN';
             }
             return 'UNKNOWN';
@@ -74,7 +74,8 @@
 
             @foreach($groupedLaporan as $kategori => $items)
                 @php
-                    $kodeAkun = $items->first()->kode ?? '-';
+                    // Ambil kode akun dari kode, kode2, kode3, atau kode4 yang tidak kosong
+                    $kodeAkun = $items->first()->kode ?? $items->first()->kode2 ?? $items->first()->kode3 ?? $items->first()->kode4 ?? '-';
                     $runningBalance = 0;
                     $accountType = substr($kodeAkun, 0, 3);
                 @endphp
@@ -201,7 +202,6 @@
                     <button id="nextPage" class="text-sm px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
                 </div>
             </div>
-        </div>
                 </div>
             @endforeach
 
